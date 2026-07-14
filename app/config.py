@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # ── LLM ──────────────────────────────────────────────────────────
     openai_api_key: str = ""
-    openai_model: str = "gpt-4.1-mini"
+    openai_model: str = "gpt-5.4-mini"
     openai_embedding_model: str = "text-embedding-3-small"
     ollama_base_url: str = ""
     ollama_model: str = ""
