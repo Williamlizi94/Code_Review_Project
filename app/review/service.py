@@ -98,7 +98,7 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
             message=i.message,
             suggestion=i.suggestion,
             category=i.category,
-            metadata=i.metadata,
+            extra_metadata=i.metadata,
         )
         for i in ctx.merged_issues
     ]

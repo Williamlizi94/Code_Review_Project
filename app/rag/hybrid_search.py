@@ -121,7 +121,7 @@ async def hybrid_search(
                 chunk_id=cid,
                 doc_id=str(chunk.doc_id),
                 content=chunk.content,
-                metadata=chunk.metadata,
+                metadata=chunk.extra_metadata,
                 vector_score=vec_id_score.get(cid, 0.0),
                 rrf_score=rrf,
             )

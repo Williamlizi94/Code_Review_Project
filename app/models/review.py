@@ -88,7 +88,7 @@ class ReviewIssue(Base, UUIDMixin, TimestampMixin):
     # AI-generated fix suggestion (before/after diff)
     suggestion: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Extra metadata (e.g., code snippet, AST context)
-    metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    extra_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # Category: style | security | performance | maintainability | business_logic
     category: Mapped[str | None] = mapped_column(String(50), nullable=True)
 

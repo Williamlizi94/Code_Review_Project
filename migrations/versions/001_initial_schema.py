@@ -98,7 +98,7 @@ def upgrade() -> None:
         sa.Column("line_end", sa.Integer(), nullable=True),
         sa.Column("message", sa.Text(), nullable=False),
         sa.Column("suggestion", sa.Text(), nullable=True),
-        sa.Column("metadata", postgresql.JSON(), nullable=True),
+        sa.Column("extra_metadata", postgresql.JSON(), nullable=True),
         sa.Column("category", sa.String(50), nullable=True),
         sa.Column(
             "created_at",
@@ -178,7 +178,7 @@ def upgrade() -> None:
         sa.Column("doc_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("content", sa.Text(), nullable=False),
         sa.Column("chunk_index", sa.Integer(), nullable=False),
-        sa.Column("metadata", postgresql.JSON(), nullable=True),
+        sa.Column("extra_metadata", postgresql.JSON(), nullable=True),
         sa.Column("embedding_json", sa.Text(), nullable=True),
         sa.Column(
             "created_at",

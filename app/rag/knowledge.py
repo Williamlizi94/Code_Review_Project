@@ -122,7 +122,7 @@ async def ingest_document(
             content=chunk_text,
             chunk_index=idx,
             embedding_json=json.dumps(embedding),
-            metadata={"language": language, "chunk_index": idx},
+            extra_metadata={"language": language, "chunk_index": idx},
         )
         chunk_objs.append(chunk)
 
