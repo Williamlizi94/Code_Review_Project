@@ -1,4 +1,4 @@
-"""Review orchestration service — assembles and runs the pipeline."""
+"""Review orchestration service â€” assembles and runs the pipeline."""
 
 import uuid
 from typing import Any
@@ -41,6 +41,7 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
 
     ctx = PipelineContext(
         review_id=review_id,
+        user_id=review.user_id,
         review_type=review.type,
         target=review.target,
         branch=review.branch,
@@ -52,7 +53,7 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
         snippet_language=None,  # could be stored as extra field
     )
 
-    # ── Run stages sequentially ───────────────────────────────────────
+    # â”€â”€ Run stages sequentially â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     stages = [
         GitCloneStage(),
         StaticAnalysisStage(),
@@ -80,7 +81,7 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
             ctx.error = str(exc)
             break
 
-    # ── Persist results ───────────────────────────────────────────────
+    # â”€â”€ Persist results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if ctx.error:
         await _update_status(review_id, "FAILED", db, error_message=ctx.error)
         return
@@ -98,7 +99,7 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
             message=i.message,
             suggestion=i.suggestion,
             category=i.category,
-            metadata=i.metadata,
+            extra_metadata=i.metadata,
         )
         for i in ctx.merged_issues
     ]

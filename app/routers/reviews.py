@@ -1,22 +1,20 @@
 """Review API endpoints."""
 
 import uuid
-from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth.service import get_current_user
 from app.database import get_db
-from app.models.review import Review, ReviewIssue, ReviewReport
+from app.models.review import Review, ReviewReport
 from app.models.user import User
 from app.report.pdf import generate_pdf_report
 from app.schemas.review import (
     IssueOut,
-    ReportOut,
     ReviewDetailResponse,
     ReviewListResponse,
     ReviewRequest,
@@ -26,7 +24,25 @@ from app.schemas.review import (
 router = APIRouter(prefix="/api/v1/reviews", tags=["Reviews"])
 
 
-# ── Submit review ─────────────────────────────────────────────────────────────
+def _review_access_filter(review_id: uuid.UUID, current_user: User):
+    clauses = [Review.id == review_id]
+    if not current_user.is_superuser:
+        clauses.append(Review.user_id == current_user.id)
+    return and_(*clauses)
+
+
+async def _get_accessible_review(
+    db: AsyncSession,
+    review_id: uuid.UUID,
+    current_user: User,
+    include_issues: bool = False,
+) -> Review | None:
+    stmt = select(Review).where(_review_access_filter(review_id, current_user))
+    if include_issues:
+        stmt = stmt.options(selectinload(Review.issues))
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
 
 @router.post("", response_model=ReviewResponse, status_code=status.HTTP_202_ACCEPTED)
 async def submit_review(
@@ -36,7 +52,6 @@ async def submit_review(
     current_user: User = Depends(get_current_user),
 ) -> ReviewResponse:
     """Submit a new code review task. Processing happens asynchronously."""
-    # Validate SNIPPET type requires content
     if request.type == "SNIPPET" and not request.snippet_content:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -60,23 +75,37 @@ async def submit_review(
     await db.commit()
     await db.refresh(review)
 
-    # Enqueue async pipeline via Celery
     background_tasks.add_task(_trigger_celery_task, str(review.id))
 
     return ReviewResponse.model_validate(review)
 
 
 async def _trigger_celery_task(review_id: str) -> None:
-    """Trigger the Celery review task."""
+    """Trigger the Celery review task and avoid surfacing infra failures to clients."""
     try:
         from app.worker import run_review_task
-        run_review_task.delay(review_id)
+
+        run_review_task.apply_async(args=(review_id,), ignore_result=True, retry=False)
     except Exception as exc:
         from loguru import logger
+
+        from app.database import AsyncSessionLocal
+
         logger.error(f"Failed to enqueue Celery task for review {review_id}: {exc}")
+        try:
+            async with AsyncSessionLocal() as db:
+                await db.execute(
+                    update(Review)
+                    .where(Review.id == uuid.UUID(review_id))
+                    .values(status="FAILED", error_message=f"Celery enqueue failed: {exc}")
+                )
+                await db.commit()
+        except Exception as status_exc:
+            logger.error(
+                f"Could not mark review {review_id} as FAILED after Celery enqueue error: "
+                f"{status_exc}"
+            )
 
-
-# ── Get review detail ─────────────────────────────────────────────────────────
 
 @router.get("/{review_id}", response_model=ReviewDetailResponse)
 async def get_review(
@@ -84,13 +113,8 @@ async def get_review(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ReviewDetailResponse:
-    """Get review status and issues."""
-    result = await db.execute(
-        select(Review)
-        .options(selectinload(Review.issues))
-        .where(Review.id == review_id)
-    )
-    review = result.scalar_one_or_none()
+    """Get review status and issues for the current user."""
+    review = await _get_accessible_review(db, review_id, current_user, include_issues=True)
     if review is None:
         raise HTTPException(status_code=404, detail="Review not found")
 
@@ -99,8 +123,6 @@ async def get_review(
     return resp
 
 
-# ── Get review report ─────────────────────────────────────────────────────────
-
 @router.get("/{review_id}/report")
 async def get_report(
     review_id: uuid.UUID,
@@ -108,39 +130,28 @@ async def get_report(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
-    """Download the review report in the specified format."""
-    # Look for a stored report first
-    result = await db.execute(
-        select(ReviewReport).where(
-            and_(ReviewReport.review_id == review_id, ReviewReport.format == format)
-        )
-    )
-    report = result.scalar_one_or_none()
+    """Download a review report in the requested format."""
+    include_issues = format == "pdf"
+    review = await _get_accessible_review(db, review_id, current_user, include_issues)
+    if review is None:
+        raise HTTPException(status_code=404, detail="Review not found")
 
-    if format == "html":
-        if report and report.content:
-            return HTMLResponse(content=report.content)
-        raise HTTPException(status_code=404, detail="HTML report not yet generated")
-
-    if format == "markdown":
-        if report and report.content:
-            return PlainTextResponse(
-                content=report.content, media_type="text/markdown"
+    if format in ("html", "markdown"):
+        result = await db.execute(
+            select(ReviewReport).where(
+                and_(ReviewReport.review_id == review_id, ReviewReport.format == format)
             )
-        raise HTTPException(status_code=404, detail="Markdown report not yet generated")
+        )
+        report = result.scalar_one_or_none()
+        if not report or not report.content:
+            raise HTTPException(status_code=404, detail=f"{format.title()} report not yet generated")
+        if format == "html":
+            return HTMLResponse(content=report.content)
+        return PlainTextResponse(content=report.content, media_type="text/markdown")
 
     if format == "pdf":
-        # Generate PDF on-the-fly from issues
-        res = await db.execute(
-            select(Review)
-            .options(selectinload(Review.issues))
-            .where(Review.id == review_id)
-        )
-        review = res.scalar_one_or_none()
-        if review is None:
-            raise HTTPException(status_code=404, detail="Review not found")
-
         from app.analyzer.base import AnalyzerIssue
+
         issues = [
             AnalyzerIssue(
                 severity=i.severity,
@@ -157,7 +168,8 @@ async def get_report(
         pdf_bytes = generate_pdf_report(str(review_id), issues, target=review.target)
         if pdf_bytes is None:
             raise HTTPException(
-                status_code=503, detail="PDF generation unavailable (WeasyPrint not installed)"
+                status_code=503,
+                detail="PDF generation unavailable (WeasyPrint not installed)",
             )
         return Response(
             content=pdf_bytes,
@@ -167,8 +179,6 @@ async def get_report(
 
     raise HTTPException(status_code=400, detail=f"Unknown format {format!r}")
 
-
-# ── List reviews ──────────────────────────────────────────────────────────────
 
 @router.get("", response_model=ReviewListResponse)
 async def list_reviews(
@@ -182,7 +192,9 @@ async def list_reviews(
     current_user: User = Depends(get_current_user),
 ) -> ReviewListResponse:
     """List review history with filtering and pagination."""
-    stmt = select(Review).where(Review.user_id == current_user.id)
+    stmt = select(Review)
+    if not current_user.is_superuser:
+        stmt = stmt.where(Review.user_id == current_user.id)
 
     if keyword:
         stmt = stmt.where(

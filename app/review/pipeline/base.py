@@ -15,6 +15,7 @@ class PipelineContext:
     """Shared mutable state passed through the review pipeline."""
 
     review_id: uuid.UUID
+    user_id: uuid.UUID | None
     review_type: str              # GIT_REPO | DIRECTORY | FILE | SNIPPET
     target: str | None            # repo URL or local path
     branch: str | None

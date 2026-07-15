@@ -55,7 +55,7 @@ class KnowledgeChunk(Base, UUIDMixin, TimestampMixin):
     # Chunk position within document
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     # Extra metadata: language, function_name, class_name, line_start, line_end
-    metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
     # Vector embedding stored as JSON array (will be pgvector column after migration)
     # The actual vector(1536) column is added in the Alembic migration
     embedding_json: Mapped[str | None] = mapped_column(Text, nullable=True)

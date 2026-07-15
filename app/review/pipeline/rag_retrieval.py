@@ -1,4 +1,4 @@
-"""Stage 4: RAG retrieval — find similar historical defects."""
+"""Stage 4: RAG retrieval â€” find similar historical defects."""
 
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +20,7 @@ class RAGRetrievalStage(PipelineStage):
 
         # Build query from static issues
         if not ctx.static_issues and not ctx.snippet_content:
-            logger.info("[Stage 4] No issues or content for RAG retrieval — skipping")
+            logger.info("[Stage 4] No issues or content for RAG retrieval â€” skipping")
             return ctx
 
         # Summarize top issues for retrieval query
@@ -34,7 +34,7 @@ class RAGRetrievalStage(PipelineStage):
 
         logger.info(f"[Stage 4] RAG retrieval for: {query[:80]!r}")
         try:
-            results = await hybrid_search(query, self.db, top_k=10)
+            results = await hybrid_search(query, self.db, top_k=10, user_id=ctx.user_id)
             ranked = rerank(query, results, top_k=5)
 
             if ranked:
