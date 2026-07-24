@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality Gate Monitor — CodeGuardian AI</title>
+<style>
+:root{--bg:#f0f4f8;--surface:#ffffff;--s2:#e2e8f0;--border:rgba(0,0,0,0.10);--primary:#3b82f6;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#06b6d4;--text:#0f172a;--muted:#64748b;--r:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+.layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:16px 14px;border-bottom:1px solid var(--border);}
+.sb-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.ai{color:#818cf8;}
+.sb-nav{flex:1;padding:8px;overflow-y:auto;}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;}
+.sb-item:hover{background:var(--s2);color:var(--text);}
+.sb-item.active{background:rgba(99,102,241,.15);color:#818cf8;}
+.sb-item.sub{padding-left:26px;font-size:12px;}
+.sb-item span:first-child{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:8px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 10px 8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+.sb-uemail{font-size:10px;color:var(--muted);}
+.main-wrap{flex:1;overflow-y:auto;}
+.topnav{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;margin-left:20px;}
+.page{max-width:1060px;margin:0 auto;padding:28px 24px 60px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{font-size:12px;color:var(--muted);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+.card-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;position:relative;overflow:hidden;text-align:center;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c,var(--primary));}
+.stat-v{font-size:26px;font-weight:800;line-height:1.1;}
+.stat-l{font-size:11px;color:var(--muted);margin-top:4px;}
+.stat-d{font-size:11px;margin-top:6px;}
+/* Gate result big card */
+.gate-overview{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:center;}
+.gate-big{text-align:center;padding:20px;}
+.gate-icon{font-size:56px;line-height:1;margin-bottom:8px;}
+.gate-status{font-size:22px;font-weight:800;letter-spacing:1px;}
+.gate-pass{color:var(--success);}
+.gate-fail{color:var(--danger);}
+.gate-rate{font-size:13px;color:var(--muted);margin-top:4px;}
+.conditions{display:flex;flex-direction:column;gap:10px;}
+.cond{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--border);}
+.cond-status{font-size:16px;flex-shrink:0;}
+.cond-info{flex:1;}
+.cond-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.cond-val{font-size:12px;color:var(--muted);}
+.cond-bar-wrap{width:120px;background:var(--border);border-radius:100px;height:6px;flex-shrink:0;}
+.cond-bar{height:100%;border-radius:100px;}
+.bar-ok{background:var(--success);}
+.bar-fail{background:var(--danger);}
+.bar-warn{background:var(--warning);}
+/* Threshold config */
+.threshold-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.thresh-item{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;}
+.thresh-label{font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.thresh-input-wrap{display:flex;align-items:center;gap:8px;}
+.thresh-input{width:70px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;font-weight:700;text-align:center;outline:none;}
+.thresh-input:focus{border-color:var(--primary);}
+.thresh-unit{font-size:12px;color:var(--muted);}
+.thresh-desc{font-size:11px;color:var(--muted);margin-top:6px;}
+/* Trend chart (CSS bars) */
+.trend-chart{display:flex;align-items:flex-end;gap:8px;height:100px;padding-top:10px;}
+.trend-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.trend-bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px;}
+.trend-bar{width:14px;border-radius:3px 3px 0 0;transition:height .5s ease;}
+.b-pass{background:var(--success);opacity:.8;}
+.b-fail{background:var(--danger);opacity:.8;}
+.trend-lbl{font-size:10px;color:var(--muted);white-space:nowrap;}
+/* Project table */
+table{width:100%;border-collapse:collapse;}
+thead th{padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-bottom:1px solid var(--border);text-align:left;font-weight:600;}
+tbody td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);}
+tbody tr:hover{background:rgba(255,255,255,.02);}
+tbody tr:last-child td{border-bottom:none;}
+.badge{padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;}
+.b-pass{background:rgba(16,185,129,.15);color:var(--success);}
+.b-fail{background:rgba(239,68,68,.15);color:var(--danger);}
+.b-skip{background:rgba(100,116,139,.15);color:#94a3b8;}
+.sev-c{color:var(--danger);font-weight:700;}
+.sev-h{color:#f97316;font-weight:600;}
+.trend-mini{display:flex;gap:3px;align-items:flex-end;}
+.tm-bar{width:8px;border-radius:2px 2px 0 0;}
+.mono{font-family:monospace;font-size:11px;color:#94a3b8;}
+.link{color:var(--primary);text-decoration:none;font-size:12px;}
+.link:hover{text-decoration:underline;}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:#4f46e5;}
+.btn-ghost{background:var(--s2);border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{color:var(--text);}
+@media(max-width:700px){.stats-row{grid-template-columns:1fr 1fr;}.gate-overview{grid-template-columns:1fr;}}
+
+.sidebar{background:#1e293b!important;border-right:1px solid #334155!important;}.sb-brand,.sb-sec,.sb-item,.sb-footer,.sb-uname,.sb-uemail{color:#f1f5f9!important;}.sb-item{color:#94a3b8!important;}.sb-item.active{background:rgba(59,130,246,.2)!important;color:#93c5fd!important;}.sb-avatar{background:#3b82f6!important;}.topbar{background:#ffffff!important;border-bottom:1px solid #e2e8f0!important;color:#0f172a!important;}.card,.widget{background:#ffffff!important;border:1px solid #e2e8f0!important;box-shadow:0 1px 4px rgba(0,0,0,0.06)!important;}.badge{background:#f1f5f9!important;color:#334155!important;}.table-row:hover{background:#f8fafc!important;}table thead tr{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}.tag{background:#dbeafe!important;color:#1d4ed8!important;}.btn{color:#fff!important;}.field input,.field select,.field textarea{background:#f8fafc!important;border:1px solid #cbd5e1!important;color:#0f172a!important;}.field input::placeholder,.field textarea::placeholder{color:#94a3b8!important;}.search-bar input{background:#f1f5f9!important;border:1px solid #e2e8f0!important;color:#0f172a!important;}.report-html{background:#f8fafc!important;color:#0f172a!important;}.kv span:first-child{color:#64748b!important;}.stage-item .stage-label{color:#64748b!important;}.pipeline-stage{background:#f1f5f9!important;}.filter-bar{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}.nav-tabs{border-bottom:1px solid #e2e8f0!important;}.nav-tab.active{border-bottom-color:#3b82f6!important;color:#3b82f6!important;}.nav-tab{color:#64748b!important;}.login-card{background:#fff!important;border:1px solid #e2e8f0!important;box-shadow:0 4px 24px rgba(0,0,0,0.08)!important;}.tab-btn.active{background:#3b82f6!important;color:#fff!important;}.tab-btn{background:#f1f5f9!important;color:#64748b!important;}.severity-chip.active{border-color:#3b82f6!important;}.code-block{background:#0f172a!important;color:#e2e8f0!important;}.upload-zone{background:#f8fafc!important;border-color:#cbd5e1!important;}.log-area{background:#0f172a!important;color:#e2e8f0!important;}.stat-card{background:#fff!important;border:1px solid #e2e8f0!important;}body{background:#f0f4f8!important;}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-icon">🛡️</div><span class="sb-title">CodeGuardian <span class="ai">AI</span></span></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="02-dashboard.html" class="sb-item"><span>📊</span>Dashboard</a>
+    <a href="03-submit-review.html" class="sb-item"><span>➕</span>Submit Review</a>
+    <a href="04-review-list.html" class="sb-item"><span>📋</span>Review List</a>
+    <div class="sb-sec">Review Tools</div>
+    <a href="05-review-detail.html" class="sb-item sub"><span>🔍</span>Review Detail</a>
+    <a href="06-issue-viewer.html" class="sb-item sub"><span>⚠️</span>Issue Detail</a>
+    <a href="07-report-viewer.html" class="sb-item sub"><span>📄</span>Report Viewer</a>
+    <div class="sb-sec">Knowledge &amp; Integration</div>
+    <a href="08-knowledge-base.html" class="sb-item"><span>📚</span>Knowledge Base</a>
+    <a href="09-webhook-setup.html" class="sb-item"><span>🔗</span>Webhook</a>
+    <a href="10-quality-gate.html" class="sb-item active"><span>✅</span>Quality Gate</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-avatar">J</div><div><div class="sb-uname">John Doe</div><div class="sb-uemail">demo@codeguardian.ai</div></div></div>
+    <a href="index.html" class="sb-item"><span>🏠</span>Demo Home</a>
+  </div>
+</aside>
+<div class="main-wrap">
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Quality Gate Monitor</div>
+      <div class="page-sub">CI/CD Pipeline Integration · quality_gate_status: PASS | FAIL | SKIPPED</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost">⚙ Configure Thresholds</button>
+      <button class="btn btn-primary">📊 Export Report</button>
+    </div>
+  </div>
+
+  <!-- Overall stats -->
+  <div class="stats-row">
+    <div class="stat-card" style="--c:var(--success)">
+      <div class="stat-v">89<span style="font-size:16px">%</span></div>
+      <div class="stat-l">Pass Rate This Week</div>
+      <div class="stat-d" style="color:var(--success)">↑ 3% vs last week</div>
+    </div>
+    <div class="stat-card" style="--c:var(--danger)">
+      <div class="stat-v">4</div>
+      <div class="stat-l">FAIL Count This Week</div>
+      <div class="stat-d" style="color:var(--success)">↓ 2 vs last week</div>
+    </div>
+    <div class="stat-card" style="--c:var(--warning)">
+      <div class="stat-v">36</div>
+      <div class="stat-l">Total Reviews This Week</div>
+      <div class="stat-d" style="color:var(--muted)">→ Flat</div>
+    </div>
+    <div class="stat-card" style="--c:var(--primary)">
+      <div class="stat-v">2.1<span style="font-size:14px">m</span></div>
+      <div class="stat-l">Avg Review Duration</div>
+      <div class="stat-d" style="color:var(--success)">↓ 0.3 min</div>
+    </div>
+  </div>
+
+  <!-- Gate overview + conditions -->
+  <div class="card">
+    <div class="card-title">Latest Review · github.com/org/backend-api</div>
+    <div class="gate-overview">
+      <div class="gate-big">
+        <div class="gate-icon">❌</div>
+        <div class="gate-status gate-fail">FAIL</div>
+        <div class="gate-rate">3 conditions not met</div>
+      </div>
+      <div class="conditions">
+        <div class="cond">
+          <span class="cond-status">❌</span>
+          <div class="cond-info">
+            <div class="cond-name">Critical Issue Count</div>
+            <div class="cond-val">Actual: 3 &nbsp;·&nbsp; Threshold: 0 (no Critical allowed)</div>
+          </div>
+          <div class="cond-bar-wrap"><div class="cond-bar bar-fail" style="width:100%"></div></div>
+        </div>
+        <div class="cond">
+          <span class="cond-status">⚠️</span>
+          <div class="cond-info">
+            <div class="cond-name">High Issue Count</div>
+            <div class="cond-val">Actual: 7 &nbsp;·&nbsp; Threshold: 5</div>
+          </div>
+          <div class="cond-bar-wrap"><div class="cond-bar bar-fail" style="width:70%"></div></div>
+        </div>
+        <div class="cond">
+          <span class="cond-status">✅</span>
+          <div class="cond-info">
+            <div class="cond-name">Medium Issue Count</div>
+            <div class="cond-val">Actual: 9 &nbsp;·&nbsp; Threshold: 15</div>
+          </div>
+          <div class="cond-bar-wrap"><div class="cond-bar bar-ok" style="width:60%"></div></div>
+        </div>
+        <div class="cond">
+          <span class="cond-status">✅</span>
+          <div class="cond-info">
+            <div class="cond-name">Low Issue Count</div>
+            <div class="cond-val">Actual: 5 &nbsp;·&nbsp; Threshold: 30</div>
+          </div>
+          <div class="cond-bar-wrap"><div class="cond-bar bar-ok" style="width:17%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Threshold config -->
+  <div class="card">
+    <div class="card-title">⚙️ Quality Gate Threshold Config <span style="font-size:12px;color:var(--muted);font-weight:400;">Exceeding threshold triggers FAIL</span></div>
+    <div class="threshold-grid">
+      <div class="thresh-item">
+        <div class="thresh-label"><span style="color:var(--danger)">● Critical Threshold</span><span style="color:var(--muted);font-size:10px;">Recommended: 0</span></div>
+        <div class="thresh-input-wrap">
+          <input type="number" class="thresh-input" value="0" min="0">
+          <span class="thresh-unit">issues</span>
+        </div>
+        <div class="thresh-desc">Any Critical issue will trigger FAIL</div>
+      </div>
+      <div class="thresh-item">
+        <div class="thresh-label"><span style="color:#f97316">● High Threshold</span><span style="color:var(--muted);font-size:10px;">Recommended: 5</span></div>
+        <div class="thresh-input-wrap">
+          <input type="number" class="thresh-input" value="5" min="0">
+          <span class="thresh-unit">issues</span>
+        </div>
+        <div class="thresh-desc">High issues exceeding threshold triggers FAIL</div>
+      </div>
+      <div class="thresh-item">
+        <div class="thresh-label"><span style="color:var(--warning)">● Medium Threshold</span></div>
+        <div class="thresh-input-wrap">
+          <input type="number" class="thresh-input" value="15" min="0">
+          <span class="thresh-unit">issues</span>
+        </div>
+        <div class="thresh-desc">Medium issues exceeding threshold triggers FAIL</div>
+      </div>
+      <div class="thresh-item">
+        <div class="thresh-label"><span style="color:var(--info)">● Low Threshold</span></div>
+        <div class="thresh-input-wrap">
+          <input type="number" class="thresh-input" value="30" min="0">
+          <span class="thresh-unit">issues</span>
+        </div>
+        <div class="thresh-desc">Low issues exceeding threshold triggers FAIL</div>
+      </div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;">
+      <button class="btn btn-primary" onclick="this.textContent='✓ Saved';setTimeout(()=>this.textContent='Save Config',1500)">Save Config</button>
+      <button class="btn btn-ghost">Reset Defaults</button>
+    </div>
+  </div>
+
+  <!-- Trend + Project table in columns -->
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;">
+    <!-- Trend chart -->
+    <div class="card">
+      <div class="card-title">Pass Rate Trend (7 Days)</div>
+      <div class="trend-chart">
+        <div class="trend-col">
+          <div class="trend-bar-wrap">
+            <div class="trend-bar b-pass" style="height:60px;background:var(--success)"></div>
+            <div class="trend-bar b-fail" style="height:20px;background:var(--danger)"></div>
+          </div>
+          <div class="trend-lbl">Mon</div>
+        </div>
+        <div class="trend-col">
+          <div class="trend-bar-wrap">
+            <div class="trend-bar" style="height:70px;background:var(--success)"></div>
+            <div class="trend-bar" style="height:10px;background:var(--danger)"></div>
+          </div>
+          <div class="trend-lbl">Tue</div>
+        </div>
+        <div class="trend-col">
+          <div class="trend-bar-wrap">
+            <div class="trend-bar" style="height:50px;background:var(--success)"></div>
+            <div class="trend-bar" style="height:30px;background:var(--danger)"></div>
+          </div>
+          <div class="trend-lbl">Wed</div>
+        </div>
+        <div class="trend-col">
+          <div class="trend-bar-wrap">
+            <div class="trend-bar" style="height:80px;background:var(--success)"></div>
+            <div class="trend-bar" style="height:5px;background:var(--danger)"></div>
+          </div>
+          <div class="trend-lbl">Thu</div>
+        </div>
+        <div class="trend-col">
+          <div class="trend-bar-wrap">
+            <div class="trend-bar" style="height:65px;background:var(--success)"></div>
+            <div class="trend-bar" style="height:20px;background:var(--danger)"></div>
+          </div>
+          <div class="trend-lbl">Fri</div>
+        </div>
+        <div class="trend-col">
+          <div class="trend-bar-wrap">
+            <div class="trend-bar" style="height:40px;background:var(--success)"></div>
+            <div class="trend-bar" style="height:15px;background:var(--danger)"></div>
+          </div>
+          <div class="trend-lbl">Sat</div>
+        </div>
+        <div class="trend-col">
+          <div class="trend-bar-wrap">
+            <div class="trend-bar" style="height:30px;background:var(--success)"></div>
+            <div class="trend-bar" style="height:10px;background:var(--danger)"></div>
+          </div>
+          <div class="trend-lbl">Sun</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;margin-top:12px;font-size:11px;">
+        <div style="display:flex;align-items:center;gap:5px;color:var(--muted);"><div style="width:10px;height:10px;border-radius:2px;background:var(--success)"></div>PASS</div>
+        <div style="display:flex;align-items:center;gap:5px;color:var(--muted);"><div style="width:10px;height:10px;border-radius:2px;background:var(--danger)"></div>FAIL</div>
+      </div>
+    </div>
+
+    <!-- Project table -->
+    <div class="card">
+      <div class="card-title">Quality Gate Status by Project</div>
+      <table>
+        <thead>
+          <tr><th>Project</th><th>Language</th><th>Critical</th><th>High</th><th>Gate Result</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mono">backend-api</span></td>
+            <td>Python</td>
+            <td><span class="sev-c">3</span></td>
+            <td><span class="sev-h">7</span></td>
+            <td><span class="badge b-fail">FAIL</span></td>
+            <td><a href="05-review-detail.html" class="link">Detail</a></td>
+          </tr>
+          <tr>
+            <td><span class="mono">frontend-app</span></td>
+            <td>TypeScript</td>
+            <td><span style="color:var(--muted)">0</span></td>
+            <td><span style="color:var(--muted)">2</span></td>
+            <td><span class="badge b-pass">PASS</span></td>
+            <td><a href="05-review-detail.html" class="link">Detail</a></td>
+          </tr>
+          <tr>
+            <td><span class="mono">api-gateway</span></td>
+            <td>Go</td>
+            <td><span style="color:var(--muted)">0</span></td>
+            <td><span style="color:var(--muted)">1</span></td>
+            <td><span class="badge b-pass">PASS</span></td>
+            <td><a href="05-review-detail.html" class="link">Detail</a></td>
+          </tr>
+          <tr>
+            <td><span class="mono">payments-svc</span></td>
+            <td>Go</td>
+            <td><span class="sev-c">1</span></td>
+            <td><span class="sev-h">6</span></td>
+            <td><span class="badge b-fail">FAIL</span></td>
+            <td><a href="05-review-detail.html" class="link">Detail</a></td>
+          </tr>
+          <tr>
+            <td><span class="mono">auth-service</span></td>
+            <td>Java</td>
+            <td colspan="2"><span style="color:var(--muted)">Analysis failed</span></td>
+            <td><span class="badge b-skip">SKIPPED</span></td>
+            <td><a href="05-review-detail.html" class="link">Detail</a></td>
+          </tr>
+          <tr>
+            <td><span class="mono">mobile-bff</span></td>
+            <td>TypeScript</td>
+            <td><span style="color:var(--muted)">0</span></td>
+            <td><span style="color:var(--muted)">4</span></td>
+            <td><span class="badge b-pass">PASS</span></td>
+            <td><a href="05-review-detail.html" class="link">Detail</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

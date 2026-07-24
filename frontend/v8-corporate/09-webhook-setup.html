@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webhook Setup — CodeGuardian AI</title>
+<style>
+:root{--bg:#eef2f7;--surface:#ffffff;--s2:#f1f5f9;--border:rgba(0,0,0,0.08);--primary:#1d4ed8;--success:#059669;--warning:#d97706;--danger:#dc2626;--info:#0284c7;--text:#1e293b;--muted:#64748b;--r:6px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+.layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:16px 14px;border-bottom:1px solid var(--border);}
+.sb-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.ai{color:#818cf8;}
+.sb-nav{flex:1;padding:8px;overflow-y:auto;}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;}
+.sb-item:hover{background:var(--s2);color:var(--text);}
+.sb-item.active{background:rgba(99,102,241,.15);color:#818cf8;}
+.sb-item.sub{padding-left:26px;font-size:12px;}
+.sb-item span:first-child{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:8px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 10px 8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+.sb-uemail{font-size:10px;color:var(--muted);}
+.main-wrap{flex:1;overflow-y:auto;}
+.topnav{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;margin-left:20px;}
+.page{max-width:900px;margin:0 auto;padding:28px 24px 60px;}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{font-size:12px;color:var(--muted);margin-bottom:24px;}
+/* Platform tabs */
+.platform-tabs{display:flex;gap:8px;margin-bottom:20px;}
+.ptab{display:flex;align-items:center;gap:8px;padding:10px 20px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);transition:all .15s;}
+.ptab:hover{border-color:rgba(99,102,241,.3);color:var(--text);}
+.ptab.active{background:rgba(99,102,241,.1);border-color:var(--primary);color:var(--text);}
+.ptab .pl-icon{font-size:20px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin-bottom:16px;}
+.card-title{font-size:14px;font-weight:600;margin-bottom:16px;}
+/* URL copy box */
+.url-box{display:flex;gap:10px;align-items:center;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.url-text{flex:1;font-family:monospace;font-size:12px;color:#a5b4fc;word-break:break-all;}
+.copy-btn{padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--muted);cursor:pointer;font-size:11px;white-space:nowrap;transition:all .15s;}
+.copy-btn:hover{color:var(--text);border-color:rgba(255,255,255,.2);}
+/* Secret */
+.secret-wrap{display:flex;gap:10px;align-items:center;}
+.secret-val{flex:1;font-family:monospace;font-size:12px;color:#a5b4fc;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;word-break:break-all;}
+.gen-btn{padding:9px 14px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--muted);cursor:pointer;font-size:12px;white-space:nowrap;transition:all .15s;}
+.gen-btn:hover{color:var(--text);}
+/* Events */
+.events-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.event-item{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--s2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;}
+.event-item.on{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);}
+.ev-check{width:16px;height:16px;border-radius:4px;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .15s;}
+.on .ev-check{background:var(--primary);border-color:var(--primary);color:#fff;}
+.ev-name{font-size:12px;font-weight:500;}
+/* Verification badge */
+.verify-box{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:8px;font-size:13px;}
+.verify-box.github{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);}
+.verify-box.gitlab{background:rgba(252,161,48,.08);border:1px solid rgba(252,161,48,.2);}
+.verify-box.bitbucket{background:rgba(0,82,204,.12);border:1px solid rgba(0,82,204,.2);}
+.verify-icon{font-size:18px;}
+.verify-text{flex:1;font-size:12px;line-height:1.6;color:#d1d5db;}
+.verify-text code{background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px;font-family:monospace;font-size:11px;}
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:12px;}
+.step{display:flex;gap:12px;align-items:flex-start;}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-content{flex:1;}
+.step-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.step-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+/* Event log */
+.log-item{display:flex;gap:12px;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;font-size:12px;}
+.log-status{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.log-ok{background:var(--success);}
+.log-fail{background:var(--danger);}
+.log-meta{flex:1;}
+.log-event{font-weight:600;margin-bottom:2px;}
+.log-detail{color:var(--muted);font-family:monospace;}
+.log-time{color:var(--muted);white-space:nowrap;}
+.log-code{padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;}
+.code-200{background:rgba(16,185,129,.15);color:var(--success);}
+.code-400{background:rgba(239,68,68,.15);color:var(--danger);}
+.btn-test{padding:9px 18px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:8px;color:#a5b4fc;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;}
+.btn-test:hover{background:rgba(99,102,241,.25);}
+.pane{display:none;}
+.pane.active{display:block;}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');body{font-family:'Inter',sans-serif!important;background:#eef2f7!important;}.sidebar{background:#1e3a5f!important;border-right:none!important;box-shadow:2px 0 8px rgba(0,0,0,0.15)!important;}.sb-brand{border-bottom:1px solid rgba(255,255,255,0.1)!important;}.sb-brand .sb-title,.sb-brand .ai{color:#fff!important;}.sb-sec{color:rgba(255,255,255,0.4)!important;font-size:10px!important;}.sb-item{color:rgba(255,255,255,0.65)!important;}.sb-item:hover{background:rgba(255,255,255,0.08)!important;color:#fff!important;}.sb-item.active{background:rgba(255,255,255,0.15)!important;color:#fff!important;border-left:3px solid #60a5fa!important;}.sb-footer{border-top:1px solid rgba(255,255,255,0.1)!important;}.sb-uname{color:#fff!important;}.sb-uemail{color:rgba(255,255,255,0.5)!important;}.sb-avatar{background:#3b82f6!important;}.topbar{background:#fff!important;border-bottom:1px solid #e2e8f0!important;box-shadow:0 1px 3px rgba(0,0,0,0.08)!important;}.card,.widget,.stat-card{background:#fff!important;border:none!important;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.06)!important;}.btn-primary{background:#1d4ed8!important;box-shadow:none!important;}.btn-primary:hover{background:#1e40af!important;}.field input,.field select,.field textarea,.search-bar input{background:#fff!important;border:1px solid #d1d5db!important;color:#1e293b!important;box-shadow:0 1px 2px rgba(0,0,0,0.05)!important;}.field label{color:#374151!important;font-weight:500!important;}.stat-num{color:#1d4ed8!important;}.tag{background:#eff6ff!important;color:#1d4ed8!important;border:1px solid #bfdbfe!important;}.badge{background:#f1f5f9!important;color:#475569!important;border:1px solid #e2e8f0!important;}.upload-zone{background:#f8fafc!important;border:2px dashed #d1d5db!important;}.log-area{background:#0f172a!important;color:#e2e8f0!important;}.nav-tab.active{color:#1d4ed8!important;border-bottom-color:#1d4ed8!important;}.nav-tab{color:#6b7280!important;}.login-card{background:#fff!important;border:none!important;box-shadow:0 4px 6px rgba(0,0,0,0.07),0 10px 30px rgba(0,0,0,0.08)!important;}.login-brand{color:#1e3a5f!important;}.table-row:hover{background:#f8fafc!important;}table thead tr{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}table thead th{color:#374151!important;}.filter-bar{background:#fff!important;border-bottom:1px solid #e2e8f0!important;}.pipeline-stage{background:#f8fafc!important;border:1px solid #e2e8f0!important;}h1,h2,h3,.page-title{color:#1e293b!important;}.main-wrap,.content{background:#eef2f7!important;}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-icon">🛡️</div><span class="sb-title">CodeGuardian <span class="ai">AI</span></span></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="02-dashboard.html" class="sb-item"><span>📊</span>Dashboard</a>
+    <a href="03-submit-review.html" class="sb-item"><span>➕</span>Submit Review</a>
+    <a href="04-review-list.html" class="sb-item"><span>📋</span>Review List</a>
+    <div class="sb-sec">Review Tools</div>
+    <a href="05-review-detail.html" class="sb-item sub"><span>🔍</span>Review Detail</a>
+    <a href="06-issue-viewer.html" class="sb-item sub"><span>⚠️</span>Issue Detail</a>
+    <a href="07-report-viewer.html" class="sb-item sub"><span>📄</span>Report Viewer</a>
+    <div class="sb-sec">Knowledge &amp; Integration</div>
+    <a href="08-knowledge-base.html" class="sb-item"><span>📚</span>Knowledge Base</a>
+    <a href="09-webhook-setup.html" class="sb-item active"><span>🔗</span>Webhook</a>
+    <a href="10-quality-gate.html" class="sb-item"><span>✅</span>Quality Gate</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-avatar">J</div><div><div class="sb-uname">John Doe</div><div class="sb-uemail">demo@codeguardian.ai</div></div></div>
+    <a href="index.html" class="sb-item"><span>🏠</span>Demo Home</a>
+  </div>
+</aside>
+<div class="main-wrap">
+<div class="page">
+  <div class="page-title">Webhook Setup</div>
+  <div class="page-sub">Auto-trigger code reviews · HMAC-SHA256 signature verification · Supports Push &amp; PR/MR events</div>
+
+  <div class="platform-tabs">
+    <div class="ptab active" onclick="showPlatform('github',this)"><span class="pl-icon">🐙</span> GitHub</div>
+    <div class="ptab" onclick="showPlatform('gitlab',this)"><span class="pl-icon">🦊</span> GitLab</div>
+    <div class="ptab" onclick="showPlatform('bitbucket',this)"><span class="pl-icon">🪣</span> Bitbucket</div>
+  </div>
+
+  <!-- GitHub -->
+  <div id="pane-github" class="pane active">
+    <div class="card">
+      <div class="card-title">🔗 Webhook Endpoint</div>
+      <div class="url-box">
+        <span class="url-text" id="ghUrl">https://api.codeguardian.ai/api/v1/webhook/github</span>
+        <button class="copy-btn" onclick="copy('ghUrl',this)">Copy</button>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="verify-box github">
+          <span class="verify-icon">🔒</span>
+          <div class="verify-text">
+            Verification: <code>X-Hub-Signature-256</code> — HMAC-SHA256 signature<br>
+            GitHub signs the request body with the Secret below; reviews trigger only after server verification
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔑 Webhook Secret</div>
+      <div class="secret-wrap">
+        <div class="secret-val" id="ghSecret">whsec_6f3a9d2e1b4c7f8a0e5d3c2b1a9f8e7d6c5b4a3f2e1d0c</div>
+        <button class="gen-btn" onclick="genSecret('ghSecret')">🔄 Regenerate</button>
+        <button class="copy-btn" onclick="copy('ghSecret',this)">Copy</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📡 Listen Events</div>
+      <div class="events-grid">
+        <div class="event-item on" onclick="toggleEvent(this)"><div class="ev-check">✓</div><span class="ev-name">push</span></div>
+        <div class="event-item on" onclick="toggleEvent(this)"><div class="ev-check">✓</div><span class="ev-name">pull_request</span></div>
+        <div class="event-item" onclick="toggleEvent(this)"><div class="ev-check"></div><span class="ev-name">pull_request_review</span></div>
+        <div class="event-item" onclick="toggleEvent(this)"><div class="ev-check"></div><span class="ev-name">create</span></div>
+        <div class="event-item" onclick="toggleEvent(this)"><div class="ev-check"></div><span class="ev-name">release</span></div>
+        <div class="event-item" onclick="toggleEvent(this)"><div class="ev-check"></div><span class="ev-name">workflow_run</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Setup Steps</div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Go to GitHub Repository Settings</div><div class="step-desc">Settings → Webhooks → Add webhook</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Enter Payload URL</div><div class="step-desc">Paste the endpoint URL above into the Payload URL field</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Set Content type</div><div class="step-desc">Select <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px;font-size:11px;">application/json</code></div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Enter Secret</div><div class="step-desc">Paste the generated Secret into the Secret field for HMAC-SHA256 verification</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">Select Events and Save</div><div class="step-desc">Check push and pull_request events, click Add webhook</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GitLab -->
+  <div id="pane-gitlab" class="pane">
+    <div class="card">
+      <div class="card-title">🔗 Webhook Endpoint</div>
+      <div class="url-box">
+        <span class="url-text" id="glUrl">https://api.codeguardian.ai/api/v1/webhook/gitlab</span>
+        <button class="copy-btn" onclick="copy('glUrl',this)">Copy</button>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="verify-box gitlab">
+          <span class="verify-icon">🔑</span>
+          <div class="verify-text">
+            Verification: <code>X-Gitlab-Token</code> — static token match<br>
+            Enter the Token below in GitLab Webhook config; server validates request header consistency
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔑 GitLab Token</div>
+      <div class="secret-wrap">
+        <div class="secret-val" id="glToken">glhk_9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d</div>
+        <button class="gen-btn" onclick="genSecret('glToken')">🔄 Regenerate</button>
+        <button class="copy-btn" onclick="copy('glToken',this)">Copy</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📡 Listen Events</div>
+      <div class="events-grid">
+        <div class="event-item on" onclick="toggleEvent(this)"><div class="ev-check">✓</div><span class="ev-name">push events</span></div>
+        <div class="event-item on" onclick="toggleEvent(this)"><div class="ev-check">✓</div><span class="ev-name">merge_request events</span></div>
+        <div class="event-item" onclick="toggleEvent(this)"><div class="ev-check"></div><span class="ev-name">tag push events</span></div>
+        <div class="event-item" onclick="toggleEvent(this)"><div class="ev-check"></div><span class="ev-name">pipeline events</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bitbucket -->
+  <div id="pane-bitbucket" class="pane">
+    <div class="card">
+      <div class="card-title">🔗 Webhook Endpoint</div>
+      <div class="url-box">
+        <span class="url-text" id="bbUrl">https://api.codeguardian.ai/api/v1/webhook/bitbucket</span>
+        <button class="copy-btn" onclick="copy('bbUrl',this)">Copy</button>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="verify-box bitbucket">
+          <span class="verify-icon">🔒</span>
+          <div class="verify-text">
+            Verification: <code>X-Hub-Signature</code> — HMAC-SHA256 signature (same as GitHub)<br>
+            Enter the Secret Key in Bitbucket Webhook config
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔑 Secret Key</div>
+      <div class="secret-wrap">
+        <div class="secret-val" id="bbSecret">bbhk_1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f</div>
+        <button class="gen-btn" onclick="genSecret('bbSecret')">🔄 Regenerate</button>
+        <button class="copy-btn" onclick="copy('bbSecret',this)">Copy</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📡 Listen Events</div>
+      <div class="events-grid">
+        <div class="event-item on" onclick="toggleEvent(this)"><div class="ev-check">✓</div><span class="ev-name">repo:push</span></div>
+        <div class="event-item on" onclick="toggleEvent(this)"><div class="ev-check">✓</div><span class="ev-name">pullrequest:created</span></div>
+        <div class="event-item" onclick="toggleEvent(this)"><div class="ev-check"></div><span class="ev-name">pullrequest:updated</span></div>
+        <div class="event-item" onclick="toggleEvent(this)"><div class="ev-check"></div><span class="ev-name">pullrequest:fulfilled</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Log (shared) -->
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>📜 Recent Webhook Event Log</span>
+      <button class="btn-test" onclick="testWebhook()">🧪 Send Test Event</button>
+    </div>
+    <div id="eventLog">
+      <div class="log-item">
+        <div class="log-status log-ok"></div>
+        <div class="log-meta">
+          <div class="log-event">push → main <span class="log-code code-200">202</span> <span style="color:var(--success);">Review triggered</span></div>
+          <div class="log-detail">github.com/org/backend-api · sha:a3f8c2d · by zhangsan</div>
+        </div>
+        <div class="log-time">14:32:10</div>
+      </div>
+      <div class="log-item">
+        <div class="log-status log-ok"></div>
+        <div class="log-meta">
+          <div class="log-event">pull_request opened → main <span class="log-code code-200">202</span> <span style="color:var(--success);">Review triggered</span></div>
+          <div class="log-detail">github.com/org/frontend-app · PR #142 · by lisi</div>
+        </div>
+        <div class="log-time">13:05:44</div>
+      </div>
+      <div class="log-item">
+        <div class="log-status log-fail"></div>
+        <div class="log-meta">
+          <div class="log-event">push <span class="log-code code-400">401</span> <span style="color:var(--danger);">Signature verification failed</span></div>
+          <div class="log-detail">X-Hub-Signature-256 mismatch, check Secret configuration</div>
+        </div>
+        <div class="log-time">12:18:03</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPlatform(p,el){
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.ptab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('pane-'+p).classList.add('active');
+  el.classList.add('active');
+}
+function toggleEvent(el){el.classList.toggle('on');const c=el.querySelector('.ev-check');c.textContent=el.classList.contains('on')?'✓':'';}
+function copy(id,btn){
+  const txt=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(txt).catch(()=>{});
+  btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);
+}
+function genSecret(id){
+  const chars='0123456789abcdef';
+  let s='';for(let i=0;i<48;i++)s+=chars[Math.floor(Math.random()*16)];
+  document.getElementById(id).textContent=id.startsWith('gh')?'whsec_'+s:id.startsWith('gl')?'glhk_'+s:'bbhk_'+s;
+}
+function testWebhook(){
+  const log=document.getElementById('eventLog');
+  const item=document.createElement('div');item.className='log-item';
+  item.innerHTML=`<div class="log-status log-ok"></div><div class="log-meta"><div class="log-event">ping (test) <span class="log-code code-200">200</span> <span style="color:var(--success);">Connection OK</span></div><div class="log-detail">Webhook test successful, signature verified</div></div><div class="log-time">${new Date().toLocaleTimeString()}</div>`;
+  log.insertBefore(item,log.firstChild);
+}
+</script>
+</div>
+</div>
+</div>
+</body>
+</html>

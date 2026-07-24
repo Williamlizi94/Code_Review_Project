@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review List — CodeGuardian AI</title>
+<style>
+:root{--bg:#130306;--surface:#1e0509;--s2:#280710;--border:rgba(244,63,94,0.15);--primary:#f43f5e;--success:#34d399;--warning:#fbbf24;--danger:#fb7185;--info:#67e8f9;--text:#ffe4e6;--muted:#9e4a5c;--r:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+.layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:16px 14px;border-bottom:1px solid var(--border);}
+.sb-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.ai{color:#818cf8;}
+.sb-nav{flex:1;padding:8px;overflow-y:auto;}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;}
+.sb-item:hover{background:var(--s2);color:var(--text);}
+.sb-item.active{background:rgba(99,102,241,.15);color:#818cf8;}
+.sb-item.sub{padding-left:26px;font-size:12px;}
+.sb-item span:first-child{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:8px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 10px 8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+.sb-uemail{font-size:10px;color:var(--muted);}
+.main-wrap{flex:1;overflow-y:auto;}
+.topnav{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;margin-left:20px;}
+.nav-links a:hover{color:var(--text);}
+.page{max-width:1100px;margin:0 auto;padding:28px 24px 60px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.page-title{font-size:20px;font-weight:700;}
+.page-sub{font-size:12px;color:var(--muted);margin-top:3px;font-family:monospace;}
+.btn{padding:9px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all .2s;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:#4f46e5;}
+/* Filter bar */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap input{padding-left:34px;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
+input,select{width:100%;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--primary);}
+input::placeholder{color:var(--muted);}
+select{width:auto;min-width:130px;cursor:pointer;}
+select option{background:#1e2433;}
+/* Table card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:11px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-bottom:1px solid var(--border);text-align:left;font-weight:600;white-space:nowrap;}
+tbody td{padding:13px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);}
+tbody tr:hover{background:rgba(255,255,255,.02);}
+tbody tr:last-child td{border-bottom:none;}
+.badge{padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;}
+.b-completed{background:rgba(16,185,129,.15);color:var(--success);}
+.b-running{background:rgba(59,130,246,.15);color:var(--info);}
+.b-pending{background:rgba(100,116,139,.15);color:#94a3b8;}
+.b-failed{background:rgba(239,68,68,.15);color:var(--danger);}
+.sev{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
+.sev-critical{background:rgba(239,68,68,.15);color:var(--danger);}
+.sev-0{color:var(--muted);}
+.gate-pass{color:var(--success);font-weight:600;font-size:12px;}
+.gate-fail{color:var(--danger);font-weight:600;font-size:12px;}
+.gate-skip{color:var(--muted);font-size:12px;}
+.mono{font-family:monospace;font-size:12px;color:#94a3b8;}
+.link{color:var(--primary);text-decoration:none;font-size:12px;}
+.link:hover{text-decoration:underline;}
+.type-tag{font-size:11px;color:#64748b;background:var(--s2);padding:2px 7px;border-radius:4px;}
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);}
+.pag-info{font-size:12px;color:var(--muted);}
+.pag-btns{display:flex;gap:4px;}
+.pag-btn{padding:6px 11px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--muted);cursor:pointer;font-size:12px;transition:all .15s;}
+.pag-btn:hover{background:var(--s2);color:var(--text);}
+.pag-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+/* Filter active pills */
+.filter-pill{display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);border-radius:100px;font-size:11px;color:#a5b4fc;}
+.pill-x{cursor:pointer;opacity:.7;}
+.pill-x:hover{opacity:1;}
+.result-count{font-size:13px;color:var(--muted);padding:8px 0;}
+.result-count strong{color:var(--text);}
+
+body{background:radial-gradient(ellipse at bottom right,#1e0509 0%,#130306 70%)!important;background-attachment:fixed!important;}.sidebar{background:#110205!important;border-right:1px solid rgba(244,63,94,0.15)!important;}.sb-item.active{background:rgba(244,63,94,0.12)!important;color:#fb7185!important;}.sb-brand .ai{color:#f43f5e!important;}.card,.widget,.stat-card{background:#1e0509!important;border:1px solid rgba(244,63,94,0.12)!important;}.topbar{background:#110205!important;border-bottom:1px solid rgba(244,63,94,0.1)!important;}.btn-primary{background:linear-gradient(135deg,#e11d48,#f43f5e)!important;box-shadow:0 4px 15px rgba(244,63,94,0.3)!important;}.field input,.field select,.field textarea,.search-bar input{background:#130306!important;border:1px solid rgba(244,63,94,0.2)!important;color:#ffe4e6!important;}.stat-num{color:#fb7185!important;}.tag{background:rgba(244,63,94,0.12)!important;color:#fda4af!important;}.upload-zone{background:rgba(30,5,9,0.5)!important;border:2px dashed rgba(244,63,94,0.3)!important;}.log-area{background:#0d0205!important;border:1px solid rgba(244,63,94,0.15)!important;}.nav-tab.active{color:#fb7185!important;border-bottom-color:#f43f5e!important;}.sb-avatar{background:linear-gradient(135deg,#e11d48,#be123c)!important;}.login-card{background:#1e0509!important;border:1px solid rgba(244,63,94,0.2)!important;}.table-row:hover{background:rgba(244,63,94,0.04)!important;}table thead tr{background:#110205!important;}.filter-bar{background:#110205!important;border-bottom:1px solid rgba(244,63,94,0.1)!important;}h1,h2,.page-title{color:#ffe4e6!important;}.pipeline-stage{background:#1e0509!important;border:1px solid rgba(244,63,94,0.1)!important;}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-icon">🛡️</div><span class="sb-title">CodeGuardian <span class="ai">AI</span></span></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="02-dashboard.html" class="sb-item"><span>📊</span>Dashboard</a>
+    <a href="03-submit-review.html" class="sb-item"><span>➕</span>Submit Review</a>
+    <a href="04-review-list.html" class="sb-item active"><span>📋</span>Review List</a>
+    <div class="sb-sec">Review Tools</div>
+    <a href="05-review-detail.html" class="sb-item sub"><span>🔍</span>Review Detail</a>
+    <a href="06-issue-viewer.html" class="sb-item sub"><span>⚠️</span>Issue Detail</a>
+    <a href="07-report-viewer.html" class="sb-item sub"><span>📄</span>Report Viewer</a>
+    <div class="sb-sec">Knowledge &amp; Integration</div>
+    <a href="08-knowledge-base.html" class="sb-item"><span>📚</span>Knowledge Base</a>
+    <a href="09-webhook-setup.html" class="sb-item"><span>🔗</span>Webhook</a>
+    <a href="10-quality-gate.html" class="sb-item"><span>✅</span>Quality Gate</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-avatar">J</div><div><div class="sb-uname">John Doe</div><div class="sb-uemail">demo@codeguardian.ai</div></div></div>
+    <a href="index.html" class="sb-item"><span>🏠</span>Demo Home</a>
+  </div>
+</aside>
+<div class="main-wrap">
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Review List</div>
+      <div class="page-sub">GET /api/v1/reviews/?page=0&amp;size=20&amp;status=&amp;severity=&amp;lang=&amp;keyword=</div>
+    </div>
+    <a href="03-submit-review.html" class="btn btn-primary">+ New Review</a>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search repository URL / keyword…" id="searchInput" oninput="filterTable()">
+    </div>
+    <select id="filterStatus" onchange="filterTable()">
+      <option value="">All Status</option>
+      <option value="PENDING">PENDING</option>
+      <option value="RUNNING">RUNNING</option>
+      <option value="COMPLETED">COMPLETED</option>
+      <option value="FAILED">FAILED</option>
+    </select>
+    <select id="filterLang" onchange="filterTable()">
+      <option value="">All Languages</option>
+      <option value="python">Python</option>
+      <option value="typescript">TypeScript</option>
+      <option value="go">Go</option>
+      <option value="java">Java</option>
+    </select>
+    <select id="filterGate" onchange="filterTable()">
+      <option value="">Quality Gate</option>
+      <option value="PASS">PASS</option>
+      <option value="FAIL">FAIL</option>
+    </select>
+  </div>
+  <div class="result-count" id="resultCount"><strong>12</strong> reviews</div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Target / Repository</th>
+          <th>Type</th>
+          <th>Language</th>
+          <th>Issues</th>
+          <th>Critical</th>
+          <th>Quality Gate</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="reviewTable">
+        <tr data-status="COMPLETED" data-lang="python" data-gate="FAIL">
+          <td><span class="mono">github.com/org/backend-api</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>Python</td>
+          <td>24</td>
+          <td><span class="sev sev-critical">3</span></td>
+          <td><span class="gate-fail">✗ FAIL</span></td>
+          <td><span class="badge b-completed">COMPLETED</span></td>
+          <td><span class="mono">07-22 14:32</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="COMPLETED" data-lang="typescript" data-gate="PASS">
+          <td><span class="mono">github.com/org/frontend-app</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>TypeScript</td>
+          <td>11</td>
+          <td><span class="sev sev-0">0</span></td>
+          <td><span class="gate-pass">✓ PASS</span></td>
+          <td><span class="badge b-completed">COMPLETED</span></td>
+          <td><span class="mono">07-22 13:05</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="RUNNING" data-lang="go" data-gate="">
+          <td><span class="mono">gitlab.com/team/payments-svc</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>Go</td>
+          <td>—</td>
+          <td>—</td>
+          <td><span class="gate-skip">—</span></td>
+          <td><span class="badge b-running">RUNNING</span></td>
+          <td><span class="mono">07-22 12:50</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="COMPLETED" data-lang="python" data-gate="FAIL">
+          <td><span class="mono">Code Snippet · Python</span></td>
+          <td><span class="type-tag">SNIPPET</span></td>
+          <td>Python</td>
+          <td>5</td>
+          <td><span class="sev sev-critical">1</span></td>
+          <td><span class="gate-fail">✗ FAIL</span></td>
+          <td><span class="badge b-completed">COMPLETED</span></td>
+          <td><span class="mono">07-22 11:20</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="PENDING" data-lang="python" data-gate="">
+          <td><span class="mono">github.com/org/data-pipeline</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>Python</td>
+          <td>—</td>
+          <td>—</td>
+          <td><span class="gate-skip">—</span></td>
+          <td><span class="badge b-pending">PENDING</span></td>
+          <td><span class="mono">07-22 10:44</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="FAILED" data-lang="java" data-gate="">
+          <td><span class="mono">bitbucket.org/team/auth-service</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>Java</td>
+          <td>—</td>
+          <td>—</td>
+          <td><span class="gate-skip">—</span></td>
+          <td><span class="badge b-failed">FAILED</span></td>
+          <td><span class="mono">07-21 17:00</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="COMPLETED" data-lang="go" data-gate="PASS">
+          <td><span class="mono">github.com/org/api-gateway</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>Go</td>
+          <td>7</td>
+          <td><span class="sev sev-0">0</span></td>
+          <td><span class="gate-pass">✓ PASS</span></td>
+          <td><span class="badge b-completed">COMPLETED</span></td>
+          <td><span class="mono">07-21 15:30</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="COMPLETED" data-lang="typescript" data-gate="PASS">
+          <td><span class="mono">github.com/org/mobile-bff</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>TypeScript</td>
+          <td>9</td>
+          <td><span class="sev sev-0">0</span></td>
+          <td><span class="gate-pass">✓ PASS</span></td>
+          <td><span class="badge b-completed">COMPLETED</span></td>
+          <td><span class="mono">07-21 09:12</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="COMPLETED" data-lang="python" data-gate="FAIL">
+          <td><span class="mono">github.com/org/ml-trainer</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>Python</td>
+          <td>18</td>
+          <td><span class="sev sev-critical">2</span></td>
+          <td><span class="gate-fail">✗ FAIL</span></td>
+          <td><span class="badge b-completed">COMPLETED</span></td>
+          <td><span class="mono">07-20 16:05</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="COMPLETED" data-lang="java" data-gate="PASS">
+          <td><span class="mono">gitlab.com/enterprise/core-lib</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>Java</td>
+          <td>15</td>
+          <td><span class="sev sev-0">0</span></td>
+          <td><span class="gate-pass">✓ PASS</span></td>
+          <td><span class="badge b-completed">COMPLETED</span></td>
+          <td><span class="mono">07-20 11:40</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="RUNNING" data-lang="typescript" data-gate="">
+          <td><span class="mono">github.com/org/search-engine</span></td>
+          <td><span class="type-tag">GIT_REPO</span></td>
+          <td>TypeScript</td>
+          <td>—</td>
+          <td>—</td>
+          <td><span class="gate-skip">—</span></td>
+          <td><span class="badge b-running">RUNNING</span></td>
+          <td><span class="mono">07-22 15:10</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+        <tr data-status="COMPLETED" data-lang="go" data-gate="FAIL">
+          <td><span class="mono">github.com/org/infra-tools</span></td>
+          <td><span class="type-tag">DIRECTORY</span></td>
+          <td>Go</td>
+          <td>6</td>
+          <td><span class="sev sev-critical">1</span></td>
+          <td><span class="gate-fail">✗ FAIL</span></td>
+          <td><span class="badge b-completed">COMPLETED</span></td>
+          <td><span class="mono">07-19 09:55</span></td>
+          <td><a href="05-review-detail.html" class="link">Detail</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <div class="pag-info">Showing 1&ndash;12 of 12</div>
+      <div class="pag-btns">
+        <button class="pag-btn">‹</button>
+        <button class="pag-btn active">1</button>
+        <button class="pag-btn">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function filterTable(){
+  const kw=document.getElementById('searchInput').value.toLowerCase();
+  const st=document.getElementById('filterStatus').value;
+  const la=document.getElementById('filterLang').value;
+  const gt=document.getElementById('filterGate').value;
+  const rows=document.querySelectorAll('#reviewTable tr');
+  let visible=0;
+  rows.forEach(r=>{
+    const text=r.textContent.toLowerCase();
+    const rowStatus=r.dataset.status||'';
+    const rowLang=r.dataset.lang||'';
+    const rowGate=r.dataset.gate||'';
+    const ok=(kw===''||text.includes(kw))&&(st===''||rowStatus===st)&&(la===''||rowLang===la)&&(gt===''||rowGate===gt);
+    r.style.display=ok?'':'none';
+    if(ok)visible++;
+  });
+  document.getElementById('resultCount').innerHTML=`<strong>${visible}</strong> reviews`;
+}
+</script>
+</div>
+</div>
+</div>
+</body>
+</html>

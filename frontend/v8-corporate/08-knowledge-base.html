@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Base — CodeGuardian AI</title>
+<style>
+:root{--bg:#eef2f7;--surface:#ffffff;--s2:#f1f5f9;--border:rgba(0,0,0,0.08);--primary:#1d4ed8;--success:#059669;--warning:#d97706;--danger:#dc2626;--info:#0284c7;--text:#1e293b;--muted:#64748b;--r:6px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+.layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:16px 14px;border-bottom:1px solid var(--border);}
+.sb-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.ai{color:#818cf8;}
+.sb-nav{flex:1;padding:8px;overflow-y:auto;}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;}
+.sb-item:hover{background:var(--s2);color:var(--text);}
+.sb-item.active{background:rgba(99,102,241,.15);color:#818cf8;}
+.sb-item.sub{padding-left:26px;font-size:12px;}
+.sb-item span:first-child{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:8px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 10px 8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+.sb-uemail{font-size:10px;color:var(--muted);}
+.main-wrap{flex:1;overflow-y:auto;}
+.topnav{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;margin-left:20px;}
+.page{max-width:1000px;margin:0 auto;padding:28px 24px 60px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.page-title{font-size:20px;font-weight:700;}
+.page-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+.two-col{display:grid;grid-template-columns:380px 1fr;gap:16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+.card-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;}
+/* Upload zone */
+.dropzone{border:2px dashed rgba(99,102,241,.3);border-radius:var(--r);padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px;background:rgba(99,102,241,.03);}
+.dropzone:hover,.dropzone.over{border-color:var(--primary);background:rgba(99,102,241,.08);}
+.dz-icon{font-size:32px;margin-bottom:8px;}
+.dz-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.dz-sub{font-size:12px;color:var(--muted);}
+.dz-types{font-size:11px;color:var(--muted);margin-top:6px;font-family:monospace;}
+input[type=file]{display:none;}
+/* Form */
+.form-group{margin-bottom:14px;}
+label{display:block;font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+input[type=text],select,input[type=search]{width:100%;padding:9px 12px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+input::placeholder{color:var(--muted);}
+select option{background:#1e2433;}
+.btn{padding:9px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--primary);color:#fff;width:100%;justify-content:center;padding:10px;}
+.btn-primary:hover{background:#4f46e5;}
+/* Progress */
+.upload-progress{display:none;margin-top:12px;}
+.upload-progress.show{display:block;}
+.prog-bar{background:var(--s2);border-radius:100px;height:6px;overflow:hidden;margin-top:6px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:100px;transition:width .3s;}
+.prog-label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;}
+/* Search */
+.search-bar{display:flex;gap:10px;margin-bottom:16px;}
+.search-bar input{flex:1;}
+.search-bar select{width:140px;flex-shrink:0;}
+.btn-search{padding:9px 16px;background:var(--primary);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.results-label{font-size:12px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.rag-badge{background:rgba(16,185,129,.12);color:var(--success);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+/* Search result */
+.result-item{border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:8px;transition:all .15s;}
+.result-item:hover{border-color:rgba(99,102,241,.3);}
+.ri-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.score-bar-wrap{flex:1;background:var(--s2);border-radius:100px;height:4px;}
+.score-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,#6366f1,#10b981);}
+.score-txt{font-size:11px;font-weight:700;color:var(--success);white-space:nowrap;}
+.ri-title{font-size:13px;font-weight:600;margin-bottom:4px;}
+.ri-excerpt{font-size:12px;color:var(--muted);line-height:1.6;}
+.cat-tag{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--s2);color:#94a3b8;display:inline-block;margin-top:5px;}
+/* Doc list */
+.doc-list{display:flex;flex-direction:column;gap:8px;}
+.doc-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--s2);border-radius:8px;border:1px solid var(--border);}
+.doc-icon{font-size:22px;flex-shrink:0;}
+.doc-info{flex:1;min-width:0;}
+.doc-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.doc-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.doc-status{padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;}
+.ds-ready{background:rgba(16,185,129,.15);color:var(--success);}
+.ds-proc{background:rgba(59,130,246,.15);color:var(--info);}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:5px;font-size:12px;}
+.del-btn:hover{background:rgba(239,68,68,.1);color:var(--danger);}
+.empty{text-align:center;padding:30px;color:var(--muted);font-size:13px;}
+@media(max-width:800px){.two-col{grid-template-columns:1fr;}}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');body{font-family:'Inter',sans-serif!important;background:#eef2f7!important;}.sidebar{background:#1e3a5f!important;border-right:none!important;box-shadow:2px 0 8px rgba(0,0,0,0.15)!important;}.sb-brand{border-bottom:1px solid rgba(255,255,255,0.1)!important;}.sb-brand .sb-title,.sb-brand .ai{color:#fff!important;}.sb-sec{color:rgba(255,255,255,0.4)!important;font-size:10px!important;}.sb-item{color:rgba(255,255,255,0.65)!important;}.sb-item:hover{background:rgba(255,255,255,0.08)!important;color:#fff!important;}.sb-item.active{background:rgba(255,255,255,0.15)!important;color:#fff!important;border-left:3px solid #60a5fa!important;}.sb-footer{border-top:1px solid rgba(255,255,255,0.1)!important;}.sb-uname{color:#fff!important;}.sb-uemail{color:rgba(255,255,255,0.5)!important;}.sb-avatar{background:#3b82f6!important;}.topbar{background:#fff!important;border-bottom:1px solid #e2e8f0!important;box-shadow:0 1px 3px rgba(0,0,0,0.08)!important;}.card,.widget,.stat-card{background:#fff!important;border:none!important;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.06)!important;}.btn-primary{background:#1d4ed8!important;box-shadow:none!important;}.btn-primary:hover{background:#1e40af!important;}.field input,.field select,.field textarea,.search-bar input{background:#fff!important;border:1px solid #d1d5db!important;color:#1e293b!important;box-shadow:0 1px 2px rgba(0,0,0,0.05)!important;}.field label{color:#374151!important;font-weight:500!important;}.stat-num{color:#1d4ed8!important;}.tag{background:#eff6ff!important;color:#1d4ed8!important;border:1px solid #bfdbfe!important;}.badge{background:#f1f5f9!important;color:#475569!important;border:1px solid #e2e8f0!important;}.upload-zone{background:#f8fafc!important;border:2px dashed #d1d5db!important;}.log-area{background:#0f172a!important;color:#e2e8f0!important;}.nav-tab.active{color:#1d4ed8!important;border-bottom-color:#1d4ed8!important;}.nav-tab{color:#6b7280!important;}.login-card{background:#fff!important;border:none!important;box-shadow:0 4px 6px rgba(0,0,0,0.07),0 10px 30px rgba(0,0,0,0.08)!important;}.login-brand{color:#1e3a5f!important;}.table-row:hover{background:#f8fafc!important;}table thead tr{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}table thead th{color:#374151!important;}.filter-bar{background:#fff!important;border-bottom:1px solid #e2e8f0!important;}.pipeline-stage{background:#f8fafc!important;border:1px solid #e2e8f0!important;}h1,h2,h3,.page-title{color:#1e293b!important;}.main-wrap,.content{background:#eef2f7!important;}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-icon">🛡️</div><span class="sb-title">CodeGuardian <span class="ai">AI</span></span></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="02-dashboard.html" class="sb-item"><span>📊</span>Dashboard</a>
+    <a href="03-submit-review.html" class="sb-item"><span>➕</span>Submit Review</a>
+    <a href="04-review-list.html" class="sb-item"><span>📋</span>Review List</a>
+    <div class="sb-sec">Review Tools</div>
+    <a href="05-review-detail.html" class="sb-item sub"><span>🔍</span>Review Detail</a>
+    <a href="06-issue-viewer.html" class="sb-item sub"><span>⚠️</span>Issue Detail</a>
+    <a href="07-report-viewer.html" class="sb-item sub"><span>📄</span>Report Viewer</a>
+    <div class="sb-sec">Knowledge &amp; Integration</div>
+    <a href="08-knowledge-base.html" class="sb-item active"><span>📚</span>Knowledge Base</a>
+    <a href="09-webhook-setup.html" class="sb-item"><span>🔗</span>Webhook</a>
+    <a href="10-quality-gate.html" class="sb-item"><span>✅</span>Quality Gate</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-avatar">J</div><div><div class="sb-uname">John Doe</div><div class="sb-uemail">demo@codeguardian.ai</div></div></div>
+    <a href="index.html" class="sb-item"><span>🏠</span>Demo Home</a>
+  </div>
+</aside>
+<div class="main-wrap">
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Knowledge Base</div>
+      <div class="page-sub">Upload docs · BM25 + pgvector hybrid search · Cross-Encoder reranking</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- Left: Upload -->
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">📤 Upload Document</div>
+
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileIn').click()"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="handleDrop(event)">
+          <input type="file" id="fileIn" accept=".md,.txt,.py,.js,.ts,.java,.go,.pdf" onchange="handleFile(this.files[0])">
+          <div class="dz-icon">☁️</div>
+          <div class="dz-title">Drag &amp; drop file here, or click to upload</div>
+          <div class="dz-sub">Supports coding standards, defect cases, API docs, etc.</div>
+          <div class="dz-types">.md · .txt · .py · .js · .ts · .java · .go · .pdf</div>
+        </div>
+
+        <div id="uploadProgress" class="upload-progress">
+          <div class="prog-label"><span id="progFile">filename.md</span><span id="progPct">0%</span></div>
+          <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+        </div>
+
+        <div class="form-group" style="margin-top:14px;">
+          <label>Document Title</label>
+          <input type="text" id="docTitle" placeholder="OWASP Secure Coding Guidelines v2.0">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="docCat">
+            <option value="coding_standard">Coding Standard (coding_standard)</option>
+            <option value="defect_case">Defect Case (defect_case)</option>
+            <option value="review_history">Review History (review_history)</option>
+            <option value="custom">Custom (custom)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Version</label>
+          <input type="text" id="docVer" placeholder="1.0" value="1.0">
+        </div>
+        <button class="btn btn-primary" onclick="doUpload()">📤 Upload &amp; Index</button>
+      </div>
+
+      <!-- Doc list -->
+      <div class="card">
+        <div class="card-title">📚 Uploaded Documents <span style="color:var(--muted);font-weight:400;font-size:12px;">GET /api/v1/knowledge/documents</span></div>
+        <div class="doc-list" id="docList">
+          <div class="doc-item">
+            <div class="doc-icon">📋</div>
+            <div class="doc-info">
+              <div class="doc-title">OWASP Top 10 Secure Coding Standard</div>
+              <div class="doc-meta">coding_standard · v2.0 · 48 chunks</div>
+            </div>
+            <span class="doc-status ds-ready">READY</span>
+            <button class="del-btn" onclick="deleteDoc(this)" title="DELETE /api/v1/knowledge/documents/{id}">🗑</button>
+          </div>
+          <div class="doc-item">
+            <div class="doc-icon">🐛</div>
+            <div class="doc-info">
+              <div class="doc-title">Historic Defect Case Collection 2023</div>
+              <div class="doc-meta">defect_case · v1.0 · 132 chunks</div>
+            </div>
+            <span class="doc-status ds-ready">READY</span>
+            <button class="del-btn" onclick="deleteDoc(this)" title="DELETE /api/v1/knowledge/documents/{id}">🗑</button>
+          </div>
+          <div class="doc-item">
+            <div class="doc-icon">🐍</div>
+            <div class="doc-info">
+              <div class="doc-title">Python Secure Dev Guide</div>
+              <div class="doc-meta">coding_standard · v3.1 · 76 chunks</div>
+            </div>
+            <span class="doc-status ds-ready">READY</span>
+            <button class="del-btn" onclick="deleteDoc(this)" title="DELETE /api/v1/knowledge/documents/{id}">🗑</button>
+          </div>
+          <div class="doc-item">
+            <div class="doc-icon">⚡</div>
+            <div class="doc-info">
+              <div class="doc-title">TypeScript Best Practices</div>
+              <div class="doc-meta">coding_standard · v1.5 · Processing…</div>
+            </div>
+            <span class="doc-status ds-proc">PROCESSING</span>
+            <button class="del-btn" onclick="deleteDoc(this)">🗑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Search -->
+    <div>
+      <div class="card">
+        <div class="card-title">🔍 Knowledge Search <span style="color:var(--muted);font-weight:400;font-size:12px;">BM25 + pgvector hybrid search</span></div>
+
+        <div class="search-bar">
+          <input type="search" id="searchQ" placeholder="Search coding standards, security best practices…" value="command injection defense">
+          <select id="searchCat">
+            <option value="">All Categories</option>
+            <option value="coding_standard">Coding Standard</option>
+            <option value="defect_case">Defect Case</option>
+          </select>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;text-transform:none;letter-spacing:0;">
+              <input type="checkbox" id="rerank" checked style="width:auto;"> Cross-Encoder Reranking
+            </label>
+            <select style="width:80px;font-size:12px;padding:5px 8px;">
+              <option>Top 5</option>
+              <option>Top 10</option>
+            </select>
+          </div>
+          <button class="btn-search" onclick="doSearch()">Search</button>
+        </div>
+
+        <div id="searchResults">
+          <div class="results-label">
+            <span>Search Results</span>
+            <span class="rag-badge">BM25 + pgvector + RRF Fusion</span>
+          </div>
+
+          <div class="result-item">
+            <div class="ri-top">
+              <div class="score-bar-wrap"><div class="score-bar" style="width:97%"></div></div>
+              <span class="score-txt">97.3</span>
+            </div>
+            <div class="ri-title">OWASP A03 Injection Defense — Command Injection</div>
+            <div class="ri-excerpt">Command injection is one of the most severe types. Attackers can execute arbitrary commands via crafted params. Defense: ① always use list args ② never use shell=True ③ whitelist all external inputs...</div>
+            <span class="cat-tag">coding_standard</span>
+          </div>
+
+          <div class="result-item">
+            <div class="ri-top">
+              <div class="score-bar-wrap"><div class="score-bar" style="width:91%"></div></div>
+              <span class="score-txt">91.8</span>
+            </div>
+            <div class="ri-title">Historic Defect #2341 — Payment System Command Injection</div>
+            <div class="ri-excerpt">Q3 2023: attacker triggered subprocess shell parsing via malicious filenames, gaining server control. Root cause: no input filtering and shell=True...</div>
+            <span class="cat-tag">defect_case</span>
+          </div>
+
+          <div class="result-item">
+            <div class="ri-top">
+              <div class="score-bar-wrap"><div class="score-bar" style="width:84%"></div></div>
+              <span class="score-txt">84.2</span>
+            </div>
+            <div class="ri-title">Python Secure Dev Guide — Safe subprocess Usage</div>
+            <div class="ri-excerpt">Python's subprocess shell param passes commands to /bin/sh, enabling & | ; $( ) shell metacharacters. Recommended: split command into a list...</div>
+            <span class="cat-tag">coding_standard</span>
+          </div>
+
+          <div class="result-item">
+            <div class="ri-top">
+              <div class="score-bar-wrap"><div class="score-bar" style="width:76%"></div></div>
+              <span class="score-txt">76.5</span>
+            </div>
+            <div class="ri-title">CWE-78 OS Command Injection — Mitigation Checklist</div>
+            <div class="ri-excerpt">Most effective CWE-78 mitigations: parameterized command calls, input validation (whitelist-first), least privilege, sandboxed execution...</div>
+            <span class="cat-tag">coding_standard</span>
+          </div>
+
+          <div class="result-item">
+            <div class="ri-top">
+              <div class="score-bar-wrap"><div class="score-bar" style="width:68%"></div></div>
+              <span class="score-txt">68.1</span>
+            </div>
+            <div class="ri-title">SQL Injection Defense Patterns (Related Reference)</div>
+            <div class="ri-excerpt">SQL injection and command injection differ mechanically, but defense principles are similar: parameterize, validate, least privilege...</div>
+            <span class="cat-tag">coding_standard</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function handleFile(f){
+  if(!f)return;
+  const dz=document.getElementById('dropzone');
+  dz.style.borderColor='var(--success)';
+  dz.querySelector('.dz-title').textContent=f.name;
+  dz.querySelector('.dz-sub').textContent=(f.size/1024).toFixed(1)+' KB';
+  document.getElementById('docTitle').value=f.name.replace(/\.[^.]+$/,'');
+}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('over');
+  const f=e.dataTransfer.files[0];
+  if(f)handleFile(f);
+}
+function doUpload(){
+  const title=document.getElementById('docTitle').value;
+  if(!title){alert('Please enter a document title');return;}
+  const prog=document.getElementById('uploadProgress');
+  prog.classList.add('show');
+  document.getElementById('progFile').textContent=title+'.md';
+  let pct=0;
+  const iv=setInterval(()=>{
+    pct+=Math.random()*20;
+    if(pct>=100){pct=100;clearInterval(iv);
+      document.getElementById('progPct').textContent='✓ Indexed';
+      document.getElementById('progFill').style.width='100%';
+      document.getElementById('progFill').style.background='var(--success)';
+      // Add to list
+      const item=document.createElement('div');item.className='doc-item';
+      item.innerHTML=`<div class="doc-icon">📄</div><div class="doc-info"><div class="doc-title">${title}</div><div class="doc-meta">${document.getElementById('docCat').value} · v${document.getElementById('docVer').value} · Processing…</div></div><span class="doc-status ds-proc">PROCESSING</span><button class="del-btn" onclick="deleteDoc(this)">🗑</button>`;
+      document.getElementById('docList').appendChild(item);
+    }
+    document.getElementById('progPct').textContent=Math.floor(pct)+'%';
+    document.getElementById('progFill').style.width=pct+'%';
+  },200);
+}
+function deleteDoc(btn){
+  if(confirm('Delete this document and all its vector chunks?')){btn.closest('.doc-item').remove();}
+}
+function doSearch(){
+  const q=document.getElementById('searchQ').value;
+  if(!q)return;
+  // Results already shown in demo
+  document.querySelector('.results-label').innerHTML=`<span>Found 5 results for &quot;${q}&quot;</span><span class="rag-badge">BM25 + pgvector + RRF</span>`;
+}
+</script>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue Detail — CodeGuardian AI</title>
+<style>
+:root{--bg:#0a0e1a;--surface:#111827;--s2:#1e2433;--border:rgba(255,255,255,0.07);--primary:#6366f1;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;--text:#f1f5f9;--muted:#64748b;--r:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+.layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:16px 14px;border-bottom:1px solid var(--border);}
+.sb-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.ai{color:#818cf8;}
+.sb-nav{flex:1;padding:8px;overflow-y:auto;}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;}
+.sb-item:hover{background:var(--s2);color:var(--text);}
+.sb-item.active{background:rgba(99,102,241,.15);color:#818cf8;}
+.sb-item.sub{padding-left:26px;font-size:12px;}
+.sb-item span:first-child{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:8px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 10px 8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+.sb-uemail{font-size:10px;color:var(--muted);}
+.main-wrap{flex:1;overflow-y:auto;}
+.topnav{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;margin-left:20px;}
+.nav-links a:hover{color:var(--text);}
+.page{max-width:900px;margin:0 auto;padding:28px 24px 60px;}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.breadcrumb a{color:var(--muted);text-decoration:none;}
+.breadcrumb a:hover{color:var(--primary);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+/* Issue header */
+.issue-header{display:flex;align-items:flex-start;gap:14px;}
+.sev-block{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:800;letter-spacing:.5px;flex-shrink:0;}
+.sev-critical{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);}
+.sev-high{background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3);}
+.ih-content{flex:1;}
+.ih-title{font-size:16px;font-weight:700;line-height:1.4;margin-bottom:8px;}
+.ih-meta{display:flex;gap:10px;flex-wrap:wrap;}
+.tag{padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;background:var(--s2);color:#94a3b8;}
+.tag-source{background:rgba(99,102,241,.12);color:#a5b4fc;}
+.tag-cat{background:rgba(239,68,68,.08);color:#f87171;}
+/* Location */
+.loc-bar{display:flex;align-items:center;gap:10px;background:var(--s2);border-radius:8px;padding:12px 16px;margin-bottom:16px;}
+.loc-icon{font-size:14px;}
+.loc-path{font-family:monospace;font-size:12px;color:#94a3b8;flex:1;}
+.loc-lines{font-family:monospace;font-size:12px;color:var(--warning);background:rgba(245,158,11,.1);padding:2px 8px;border-radius:4px;}
+/* Code block */
+.code-title{font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.code-wrap{border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.code-header{background:#0d1117;padding:8px 14px;font-size:11px;color:#6e7681;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.code-body{background:#0d1117;overflow-x:auto;}
+.code-line{display:flex;font-family:'Consolas',monospace;font-size:12px;line-height:1.7;}
+.line-num{width:40px;padding:0 10px;color:#484f58;text-align:right;flex-shrink:0;user-select:none;}
+.line-content{padding:0 12px;white-space:pre;color:#e6edf3;}
+.line-hl{background:rgba(239,68,68,.12);}
+.line-hl .line-num{background:rgba(239,68,68,.15);color:#fca5a5;}
+.line-hl .line-content{color:#fca5a5;}
+/* Comment color */
+.c-comment{color:#6e7681;}
+.c-keyword{color:#ff7b72;}
+.c-string{color:#a5d6ff;}
+.c-func{color:#d2a8ff;}
+.c-var{color:#ffa657;}
+/* Suggestion */
+.suggest-box{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:16px;}
+.suggest-title{font-size:12px;font-weight:700;color:var(--success);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.suggest-text{font-size:13px;color:#d1fae5;line-height:1.7;margin-bottom:12px;}
+.fix-code{background:#022c22;border-radius:6px;padding:12px;font-family:monospace;font-size:12px;color:#6ee7b7;line-height:1.6;overflow-x:auto;white-space:pre;}
+/* Related knowledge */
+.rag-item{display:flex;gap:12px;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;transition:all .15s;}
+.rag-item:hover{border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.03);}
+.rag-score{font-size:11px;color:var(--success);font-weight:700;white-space:nowrap;padding-top:2px;}
+.rag-content{flex:1;}
+.rag-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.rag-excerpt{font-size:12px;color:var(--muted);line-height:1.5;}
+.rag-cat{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--s2);color:#94a3b8;display:inline-block;margin-top:4px;}
+.section-title{font-size:14px;font-weight:600;margin-bottom:12px;}
+.copy-btn{font-size:11px;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:3px 9px;cursor:pointer;}
+.copy-btn:hover{color:var(--text);}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-icon">🛡️</div><span class="sb-title">CodeGuardian <span class="ai">AI</span></span></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="02-dashboard.html" class="sb-item"><span>📊</span>Dashboard</a>
+    <a href="03-submit-review.html" class="sb-item"><span>➕</span>Submit Review</a>
+    <a href="04-review-list.html" class="sb-item"><span>📋</span>Review List</a>
+    <div class="sb-sec">Review Tools</div>
+    <a href="05-review-detail.html" class="sb-item sub"><span>🔍</span>Review Detail</a>
+    <a href="06-issue-viewer.html" class="sb-item sub active"><span>⚠️</span>Issue Detail</a>
+    <a href="07-report-viewer.html" class="sb-item sub"><span>📄</span>Report Viewer</a>
+    <div class="sb-sec">Knowledge &amp; Integration</div>
+    <a href="08-knowledge-base.html" class="sb-item"><span>📚</span>Knowledge Base</a>
+    <a href="09-webhook-setup.html" class="sb-item"><span>🔗</span>Webhook</a>
+    <a href="10-quality-gate.html" class="sb-item"><span>✅</span>Quality Gate</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-avatar">J</div><div><div class="sb-uname">John Doe</div><div class="sb-uemail">demo@codeguardian.ai</div></div></div>
+    <a href="index.html" class="sb-item"><span>🏠</span>Demo Home</a>
+  </div>
+</aside>
+<div class="main-wrap">
+<div class="page">
+  <div class="breadcrumb">
+    <a href="04-review-list.html">Review List</a> ›
+    <a href="05-review-detail.html">rev_a3f8c2d1</a> ›
+    <span style="color:var(--text)">issue_7f3a9e12</span>
+  </div>
+
+  <!-- Issue Header -->
+  <div class="card">
+    <div class="issue-header">
+      <div class="sev-block sev-critical">CRITICAL</div>
+      <div class="ih-content">
+        <div class="ih-title">subprocess call uses shell=True, Command Injection risk</div>
+        <div class="ih-meta">
+          <span class="tag tag-source">Source: bandit</span>
+          <span class="tag tag-source">Rule: B602</span>
+          <span class="tag tag-cat">Category: security</span>
+          <span class="tag">CWE-78</span>
+          <span class="tag">OWASP A03</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Location -->
+  <div class="card">
+    <div class="section-title">Issue Location</div>
+    <div class="loc-bar">
+      <span class="loc-icon">📄</span>
+      <span class="loc-path">app/utils/executor.py</span>
+      <span class="loc-lines">Line 44–52</span>
+    </div>
+
+    <!-- Code block -->
+    <div class="code-title">
+      <span>Vulnerable Code</span>
+      <button class="copy-btn" onclick="this.textContent='Copied!'">Copy</button>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span>app/utils/executor.py</span>
+        <span>Python</span>
+      </div>
+      <div class="code-body">
+        <div class="code-line"><span class="line-num">44</span><span class="line-content"><span class="c-keyword">import</span> subprocess</span></div>
+        <div class="code-line"><span class="line-num">45</span><span class="line-content"><span class="c-keyword">import</span> os</span></div>
+        <div class="code-line"><span class="line-num">46</span><span class="line-content"></span></div>
+        <div class="code-line"><span class="line-num">47</span><span class="line-content"><span class="c-keyword">def</span> <span class="c-func">run_command</span>(user_input: <span class="c-var">str</span>) -&gt; <span class="c-var">str</span>:</span></div>
+        <div class="code-line line-hl"><span class="line-num">48</span><span class="line-content">    cmd = <span class="c-string">f"process_data {user_input}"</span>  <span class="c-comment"># ⚠️ DANGER: directly concatenating user input</span></span></div>
+        <div class="code-line line-hl"><span class="line-num">49</span><span class="line-content">    result = subprocess.<span class="c-func">run</span>(cmd, <span class="c-var">shell</span>=<span class="c-keyword">True</span>, <span class="c-var">capture_output</span>=<span class="c-keyword">True</span>)</span></div>
+        <div class="code-line"><span class="line-num">50</span><span class="line-content">    <span class="c-keyword">return</span> result.stdout.<span class="c-func">decode</span>()</span></div>
+        <div class="code-line"><span class="line-num">51</span><span class="line-content"></span></div>
+        <div class="code-line"><span class="line-num">52</span><span class="line-content"><span class="c-comment"># Attack vector: user_input = "; rm -rf /"</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Fix Suggestion -->
+  <div class="card">
+    <div class="section-title">🤖 LLM Fix Suggestion</div>
+    <div class="suggest-box">
+      <div class="suggest-title">✓ Recommended Fix</div>
+      <div class="suggest-text">
+        Change the command from string form to <strong>list form</strong> and remove <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px;">shell=True</code>.
+        This way the system invokes the executable directly without shell parsing, eliminating injection risk. Also validate <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px;">user_input</code> with a whitelist, rejecting inputs containing special characters.
+      </div>
+      <div class="fix-code">import subprocess
+import re
+
+ALLOWED_PATTERN = re.compile(r'^[a-zA-Z0-9_\-\.]+$')
+
+def run_command(user_input: str) -> str:
+    # ✅ Whitelist validation
+    if not ALLOWED_PATTERN.match(user_input):
+        raise ValueError(f"Invalid input: {user_input!r}")
+
+    # ✅ List args, no shell=True
+    result = subprocess.run(
+        ["process_data", user_input],
+        capture_output=True, timeout=30
+    )
+    return result.stdout.decode()</div>
+    </div>
+  </div>
+
+  <!-- Related Knowledge -->
+  <div class="card">
+    <div class="section-title">📚 Related Knowledge Articles
+      <span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:8px;">GET /api/v1/knowledge/search?q=command+injection&top_k=3</span>
+    </div>
+
+    <div class="rag-item">
+      <div class="rag-score">97.3%</div>
+      <div class="rag-content">
+        <div class="rag-title">OWASP Secure Coding — A03 Injection Defense</div>
+        <div class="rag-excerpt">Command injection is one of the most severe types. Always use parameterized calls to external commands, never pass user-controlled data to shell parsers...</div>
+        <span class="rag-cat">coding_standard</span>
+      </div>
+    </div>
+    <div class="rag-item">
+      <div class="rag-score">91.8%</div>
+      <div class="rag-content">
+        <div class="rag-title">Historic Defect #2341 — 2023 Payment System Command Injection</div>
+        <div class="rag-excerpt">Attacker injected system commands via semicolons in filenames, gaining remote control. Root cause: subprocess with shell=True and no filename filtering...</div>
+        <span class="rag-cat">defect_case</span>
+      </div>
+    </div>
+    <div class="rag-item">
+      <div class="rag-score">84.2%</div>
+      <div class="rag-content">
+        <div class="rag-title">Python Secure Dev Guide — Safe subprocess Usage</div>
+        <div class="rag-excerpt">Python docs state: when shell=True, cmd is equivalent to passing to /bin/sh, interpreting all shell metacharacters...</div>
+        <span class="rag-cat">coding_standard</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

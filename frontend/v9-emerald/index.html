@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeGuardian AI — Frontend Demos</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface-2: #1e2433;
+  --border: rgba(255,255,255,0.08);
+  --primary: #6366f1;
+  --primary-glow: rgba(99,102,241,0.15);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --text: #f1f5f9;
+  --muted: #64748b;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.hero {
+  text-align: center;
+  padding: 64px 24px 48px;
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 70%);
+}
+.logo-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; padding: 6px 16px 6px 8px; margin-bottom: 28px;
+}
+.logo-icon {
+  width: 32px; height: 32px; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.logo-text { font-size: 13px; color: var(--muted); }
+h1 {
+  font-size: clamp(32px, 5vw, 56px); font-weight: 800; letter-spacing: -1px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1.1; margin-bottom: 16px;
+}
+.subtitle {
+  font-size: 16px; color: var(--muted); max-width: 520px; margin: 0 auto 12px;
+  line-height: 1.7;
+}
+.api-pills {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px;
+}
+.pill {
+  font-size: 11px; padding: 3px 10px; border-radius: 100px;
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+  font-family: monospace;
+}
+.grid {
+  max-width: 1200px; margin: 0 auto; padding: 0 24px 80px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+}
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; cursor: pointer;
+  text-decoration: none; color: inherit; display: block;
+  transition: all 0.2s ease; position: relative; overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--card-accent, var(--primary)); opacity: 0;
+  transition: opacity 0.2s;
+}
+.card:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+.card:hover::before { opacity: 1; }
+.card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.card-icon {
+  width: 44px; height: 44px; border-radius: 10px; display: flex;
+  align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.card-meta { display: flex; flex-direction: column; }
+.card-num { font-size: 10px; color: var(--muted); font-family: monospace; text-transform: uppercase; letter-spacing: 1px; }
+.card-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+.card-endpoints { display: flex; flex-direction: column; gap: 4px; }
+.endpoint {
+  display: flex; align-items: center; gap: 6px; font-size: 11px;
+  color: #64748b; font-family: monospace;
+}
+.method {
+  padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;
+  min-width: 36px; text-align: center;
+}
+.method.get { background: rgba(16,185,129,0.15); color: #10b981; }
+.method.post { background: rgba(99,102,241,0.15); color: #818cf8; }
+.method.delete { background: rgba(239,68,68,0.15); color: #ef4444; }
+.card-arrow {
+  position: absolute; top: 24px; right: 20px; font-size: 18px; color: var(--muted);
+  transition: transform 0.2s;
+}
+.card:hover .card-arrow { transform: translateX(4px); color: var(--primary); }
+.section-label {
+  text-align: center; padding: 0 24px 20px; font-size: 13px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 2px;
+}
+
+body{background:radial-gradient(ellipse at top left,#041a0b 0%,#020f07 70%)!important;background-attachment:fixed!important;}.sidebar{background:#031308!important;border-right:1px solid rgba(16,185,129,0.15)!important;}.sb-item.active{background:rgba(16,185,129,0.12)!important;color:#34d399!important;}.sb-brand .ai{color:#10b981!important;}.card,.widget,.stat-card{background:#041a0b!important;border:1px solid rgba(16,185,129,0.12)!important;}.topbar{background:#031308!important;border-bottom:1px solid rgba(16,185,129,0.1)!important;}.btn-primary{background:linear-gradient(135deg,#059669,#10b981)!important;box-shadow:0 4px 15px rgba(16,185,129,0.3)!important;}.field input,.field select,.field textarea,.search-bar input{background:#020f07!important;border:1px solid rgba(16,185,129,0.2)!important;color:#d1fae5!important;}.stat-num{color:#34d399!important;}.tag{background:rgba(16,185,129,0.12)!important;color:#6ee7b7!important;}.upload-zone{background:rgba(4,26,11,0.5)!important;border:2px dashed rgba(16,185,129,0.3)!important;}.log-area{background:#010804!important;border:1px solid rgba(16,185,129,0.15)!important;}.nav-tab.active{color:#34d399!important;border-bottom-color:#10b981!important;}.sb-avatar{background:linear-gradient(135deg,#059669,#047857)!important;}.login-card{background:#041a0b!important;border:1px solid rgba(16,185,129,0.2)!important;}.table-row:hover{background:rgba(16,185,129,0.04)!important;}table thead tr{background:#031308!important;}.filter-bar{background:#031308!important;border-bottom:1px solid rgba(16,185,129,0.1)!important;}h1,h2,.page-title{color:#d1fae5!important;}.pipeline-stage{background:#041a0b!important;border:1px solid rgba(16,185,129,0.1)!important;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="logo-badge">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">CodeGuardian AI &nbsp;·&nbsp; Frontend Demos</span>
+  </div>
+  <h1>10 Frontend Demo Pages</h1>
+  <p class="subtitle">Interactive prototypes built on the CodeGuardian AI backend API, covering code review, knowledge base, webhook integration and more.</p>
+  <div class="api-pills">
+    <span class="pill">FastAPI + JWT</span>
+    <span class="pill">LangGraph ReAct Agent</span>
+    <span class="pill">pgvector RAG</span>
+    <span class="pill">Celery Async</span>
+    <span class="pill">Semgrep · Bandit · ESLint</span>
+  </div>
+</div>
+
+<p class="section-label">Select a Demo Page</p>
+
+<div class="grid">
+
+  <a href="01-login.html" class="card" style="--card-accent:#6366f1;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(99,102,241,0.12);">🔐</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 01</span>
+        <span class="card-title">Login &amp; Register</span>
+      </div>
+    </div>
+    <p class="card-desc">JWT auth flow: register, login to get Bearer Token, view current user info.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method post">POST</span>/api/v1/auth/register</div>
+      <div class="endpoint"><span class="method post">POST</span>/api/v1/auth/login</div>
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/auth/me</div>
+    </div>
+  </a>
+
+  <a href="02-dashboard.html" class="card" style="--card-accent:#8b5cf6;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(139,92,246,0.12);">📊</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 02</span>
+        <span class="card-title">Dashboard</span>
+      </div>
+    </div>
+    <p class="card-desc">Stats overview, recent reviews, severity distribution chart, quick actions.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/reviews/?page=0&size=5</div>
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/knowledge/documents</div>
+    </div>
+  </a>
+
+  <a href="03-submit-review.html" class="card" style="--card-accent:#10b981;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(16,185,129,0.12);">➕</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 03</span>
+        <span class="card-title">Submit Code Review</span>
+      </div>
+    </div>
+    <p class="card-desc">Supports 4 input types: Git repo, directory, file path, code snippet. Optional ruleset and webhook callback.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method post">POST</span>/api/v1/reviews/</div>
+    </div>
+  </a>
+
+  <a href="04-review-list.html" class="card" style="--card-accent:#3b82f6;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(59,130,246,0.12);">📋</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 04</span>
+        <span class="card-title">Review List</span>
+      </div>
+    </div>
+    <p class="card-desc">Paginated view of all review tasks with filtering by status, severity, language, keyword.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/reviews/</div>
+      <div class="endpoint"><span class="method get">GET</span>?status=COMPLETED&severity=HIGH</div>
+    </div>
+  </a>
+
+  <a href="05-review-detail.html" class="card" style="--card-accent:#f59e0b;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(245,158,11,0.12);">🔍</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 05</span>
+        <span class="card-title">Review Detail</span>
+      </div>
+    </div>
+    <p class="card-desc">8-stage pipeline progress, issue stats, quality gate status, full issue list and report entry.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/reviews/{review_id}</div>
+    </div>
+  </a>
+
+  <a href="06-issue-viewer.html" class="card" style="--card-accent:#ef4444;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(239,68,68,0.12);">⚠️</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 06</span>
+        <span class="card-title">Issue Detail Viewer</span>
+      </div>
+    </div>
+    <p class="card-desc">Deep dive into a single issue: code highlight, source analyzer, LLM fix suggestion, related knowledge articles.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/reviews/{review_id}</div>
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/knowledge/search?q=...</div>
+    </div>
+  </a>
+
+  <a href="07-report-viewer.html" class="card" style="--card-accent:#06b6d4;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(6,182,212,0.12);">📄</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 07</span>
+        <span class="card-title">Report Viewer</span>
+      </div>
+    </div>
+    <p class="card-desc">Preview 3 report formats: HTML interactive report, Markdown text report, PDF download.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/reviews/{id}/report?format=html</div>
+      <div class="endpoint"><span class="method get">GET</span>?format=markdown</div>
+      <div class="endpoint"><span class="method get">GET</span>?format=pdf</div>
+    </div>
+  </a>
+
+  <a href="08-knowledge-base.html" class="card" style="--card-accent:#a855f7;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(168,85,247,0.12);">📚</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 08</span>
+        <span class="card-title">Knowledge Base</span>
+      </div>
+    </div>
+    <p class="card-desc">Upload coding standard docs and defect cases; BM25 + pgvector hybrid search with Cross-Encoder reranking.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method post">POST</span>/api/v1/knowledge/upload</div>
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/knowledge/search</div>
+      <div class="endpoint"><span class="method delete">DELETE</span>/api/v1/knowledge/documents/{id}</div>
+    </div>
+  </a>
+
+  <a href="09-webhook-setup.html" class="card" style="--card-accent:#f97316;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(249,115,22,0.12);">🔗</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 09</span>
+        <span class="card-title">Webhook Setup</span>
+      </div>
+    </div>
+    <p class="card-desc">Webhook config for GitHub / GitLab / Bitbucket with HMAC-SHA256 verification and event log.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method post">POST</span>/api/v1/webhook/github</div>
+      <div class="endpoint"><span class="method post">POST</span>/api/v1/webhook/gitlab</div>
+      <div class="endpoint"><span class="method post">POST</span>/api/v1/webhook/bitbucket</div>
+    </div>
+  </a>
+
+  <a href="10-quality-gate.html" class="card" style="--card-accent:#10b981;">
+    <span class="card-arrow">→</span>
+    <div class="card-header">
+      <div class="card-icon" style="background:rgba(16,185,129,0.12);">✅</div>
+      <div class="card-meta">
+        <span class="card-num">Demo 10</span>
+        <span class="card-title">Quality Gate Monitor</span>
+      </div>
+    </div>
+    <p class="card-desc">CI/CD pipeline quality gate dashboard: threshold config, PASS/FAIL verdict, multi-project trend comparison.</p>
+    <div class="card-endpoints">
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/reviews/?status=COMPLETED</div>
+      <div class="endpoint"><span class="method get">GET</span>/api/v1/reviews/{id}</div>
+    </div>
+  </a>
+
+</div>
+</body>
+</html>

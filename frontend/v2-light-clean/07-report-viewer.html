@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report Viewer — CodeGuardian AI</title>
+<style>
+:root{--bg:#f0f4f8;--surface:#ffffff;--s2:#e2e8f0;--border:rgba(0,0,0,0.10);--primary:#3b82f6;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#06b6d4;--text:#0f172a;--muted:#64748b;--r:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+.layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:16px 14px;border-bottom:1px solid var(--border);}
+.sb-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.ai{color:#818cf8;}
+.sb-nav{flex:1;padding:8px;overflow-y:auto;}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;}
+.sb-item:hover{background:var(--s2);color:var(--text);}
+.sb-item.active{background:rgba(99,102,241,.15);color:#818cf8;}
+.sb-item.sub{padding-left:26px;font-size:12px;}
+.sb-item span:first-child{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:8px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 10px 8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+.sb-uemail{font-size:10px;color:var(--muted);}
+.main-wrap{flex:1;overflow-y:auto;}
+.topnav{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;margin-left:20px;}
+.page{max-width:1000px;margin:0 auto;padding:28px 24px 60px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.page-title{font-size:20px;font-weight:700;}
+.page-sub{font-size:12px;color:var(--muted);margin-top:3px;font-family:monospace;}
+.format-tabs{display:flex;gap:8px;margin-bottom:20px;align-items:center;}
+.fmt-btn{padding:8px 18px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:6px;}
+.fmt-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.fmt-btn:hover:not(.active){border-color:rgba(99,102,241,.4);color:var(--text);}
+.dl-btn{margin-left:auto;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;transition:all .15s;}
+.dl-btn:hover{background:var(--s2);}
+/* Report panel */
+.report-pane{display:none;}
+.report-pane.active{display:block;}
+/* HTML Report Simulation */
+.html-report{background:#fff;border-radius:var(--r);overflow:hidden;color:#1a1a2e;}
+.hr-header{background:linear-gradient(135deg,#1e1b4b,#312e81);color:#fff;padding:28px 32px;}
+.hr-logo{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.hr-logo-icon{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.hr-logo-text{font-size:16px;font-weight:700;}
+.hr-repo{font-size:14px;opacity:.8;margin-bottom:8px;}
+.hr-meta{display:flex;gap:20px;font-size:12px;opacity:.7;}
+.hr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#e5e7eb;}
+.hr-stat{background:#fff;padding:20px;text-align:center;}
+.hr-stat-val{font-size:28px;font-weight:800;line-height:1;}
+.hr-stat-lbl{font-size:12px;color:#6b7280;margin-top:4px;}
+.hr-gate-fail{color:#ef4444;}
+.hr-gate-pass{color:#10b981;}
+.hr-body{padding:24px 32px;}
+.hr-section{margin-bottom:24px;}
+.hr-section h3{font-size:15px;font-weight:700;margin-bottom:12px;color:#1e1b4b;padding-bottom:8px;border-bottom:2px solid #e5e7eb;}
+.hr-issue{display:flex;gap:12px;padding:12px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;}
+.hr-sev{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:800;align-self:flex-start;white-space:nowrap;}
+.hr-critical{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;}
+.hr-high{background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;}
+.hr-medium{background:#fffbeb;color:#d97706;border:1px solid #fde68a;}
+.hr-content{flex:1;}
+.hr-issue-title{font-size:13px;font-weight:600;color:#111827;margin-bottom:3px;}
+.hr-issue-loc{font-size:11px;color:#6b7280;font-family:monospace;}
+.hr-issue-sug{font-size:12px;color:#059669;margin-top:5px;}
+.hr-footer{background:#f9fafb;padding:14px 32px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;}
+/* Markdown Report */
+.md-report{background:#0d1117;border-radius:var(--r);padding:28px;font-family:monospace;font-size:12px;line-height:1.8;color:#e6edf3;overflow-x:auto;}
+.md-h1{color:#58a6ff;font-size:16px;font-weight:700;margin-bottom:4px;}
+.md-h2{color:#79c0ff;font-size:14px;font-weight:700;margin:14px 0 4px;}
+.md-h3{color:#d2a8ff;font-size:13px;font-weight:600;margin:10px 0 3px;}
+.md-table{border-collapse:collapse;width:100%;margin:8px 0;}
+.md-table th{background:#161b22;padding:6px 12px;text-align:left;font-size:11px;border:1px solid #30363d;color:#8b949e;}
+.md-table td{padding:6px 12px;border:1px solid #30363d;font-size:11px;}
+.md-c{color:#8b949e;}
+.md-r{color:#ff7b72;}
+.md-g{color:#3fb950;}
+.md-y{color:#d29922;}
+.md-b{color:#58a6ff;}
+/* PDF Placeholder */
+.pdf-pane{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:60px;text-align:center;}
+.pdf-icon{font-size:64px;margin-bottom:20px;}
+.pdf-title{font-size:18px;font-weight:700;margin-bottom:8px;}
+.pdf-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:24px;}
+.btn-pdf{padding:11px 24px;background:var(--danger);border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-pdf:hover{background:#dc2626;transform:translateY(-1px);}
+
+.sidebar{background:#1e293b!important;border-right:1px solid #334155!important;}.sb-brand,.sb-sec,.sb-item,.sb-footer,.sb-uname,.sb-uemail{color:#f1f5f9!important;}.sb-item{color:#94a3b8!important;}.sb-item.active{background:rgba(59,130,246,.2)!important;color:#93c5fd!important;}.sb-avatar{background:#3b82f6!important;}.topbar{background:#ffffff!important;border-bottom:1px solid #e2e8f0!important;color:#0f172a!important;}.card,.widget{background:#ffffff!important;border:1px solid #e2e8f0!important;box-shadow:0 1px 4px rgba(0,0,0,0.06)!important;}.badge{background:#f1f5f9!important;color:#334155!important;}.table-row:hover{background:#f8fafc!important;}table thead tr{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}.tag{background:#dbeafe!important;color:#1d4ed8!important;}.btn{color:#fff!important;}.field input,.field select,.field textarea{background:#f8fafc!important;border:1px solid #cbd5e1!important;color:#0f172a!important;}.field input::placeholder,.field textarea::placeholder{color:#94a3b8!important;}.search-bar input{background:#f1f5f9!important;border:1px solid #e2e8f0!important;color:#0f172a!important;}.report-html{background:#f8fafc!important;color:#0f172a!important;}.kv span:first-child{color:#64748b!important;}.stage-item .stage-label{color:#64748b!important;}.pipeline-stage{background:#f1f5f9!important;}.filter-bar{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}.nav-tabs{border-bottom:1px solid #e2e8f0!important;}.nav-tab.active{border-bottom-color:#3b82f6!important;color:#3b82f6!important;}.nav-tab{color:#64748b!important;}.login-card{background:#fff!important;border:1px solid #e2e8f0!important;box-shadow:0 4px 24px rgba(0,0,0,0.08)!important;}.tab-btn.active{background:#3b82f6!important;color:#fff!important;}.tab-btn{background:#f1f5f9!important;color:#64748b!important;}.severity-chip.active{border-color:#3b82f6!important;}.code-block{background:#0f172a!important;color:#e2e8f0!important;}.upload-zone{background:#f8fafc!important;border-color:#cbd5e1!important;}.log-area{background:#0f172a!important;color:#e2e8f0!important;}.stat-card{background:#fff!important;border:1px solid #e2e8f0!important;}body{background:#f0f4f8!important;}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-icon">🛡️</div><span class="sb-title">CodeGuardian <span class="ai">AI</span></span></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="02-dashboard.html" class="sb-item"><span>📊</span>Dashboard</a>
+    <a href="03-submit-review.html" class="sb-item"><span>➕</span>Submit Review</a>
+    <a href="04-review-list.html" class="sb-item"><span>📋</span>Review List</a>
+    <div class="sb-sec">Review Tools</div>
+    <a href="05-review-detail.html" class="sb-item sub"><span>🔍</span>Review Detail</a>
+    <a href="06-issue-viewer.html" class="sb-item sub"><span>⚠️</span>Issue Detail</a>
+    <a href="07-report-viewer.html" class="sb-item sub active"><span>📄</span>Report Viewer</a>
+    <div class="sb-sec">Knowledge &amp; Integration</div>
+    <a href="08-knowledge-base.html" class="sb-item"><span>📚</span>Knowledge Base</a>
+    <a href="09-webhook-setup.html" class="sb-item"><span>🔗</span>Webhook</a>
+    <a href="10-quality-gate.html" class="sb-item"><span>✅</span>Quality Gate</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-avatar">J</div><div><div class="sb-uname">John Doe</div><div class="sb-uemail">demo@codeguardian.ai</div></div></div>
+    <a href="index.html" class="sb-item"><span>🏠</span>Demo Home</a>
+  </div>
+</aside>
+<div class="main-wrap">
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Report Viewer</div>
+      <div class="page-sub">GET /api/v1/reviews/rev_a3f8c2d1/report?format=html|markdown|pdf</div>
+    </div>
+  </div>
+
+  <div class="format-tabs">
+    <button class="fmt-btn active" onclick="showFmt('html',this)">📊 HTML Report</button>
+    <button class="fmt-btn" onclick="showFmt('md',this)">📝 Markdown Report</button>
+    <button class="fmt-btn" onclick="showFmt('pdf',this)">📄 PDF Report</button>
+    <button class="dl-btn" onclick="this.textContent='⏳ Generating…';setTimeout(()=>this.innerHTML='⬇ Download Report',1500)">⬇ Download Report</button>
+  </div>
+
+  <!-- HTML Report -->
+  <div id="fmt-html" class="report-pane active">
+    <div class="html-report">
+      <div class="hr-header">
+        <div class="hr-logo">
+          <div class="hr-logo-icon">🛡️</div>
+          <div class="hr-logo-text">CodeGuardian AI · Security Review Report</div>
+        </div>
+        <div class="hr-repo">📁 github.com/org/backend-api · branch: main</div>
+        <div class="hr-meta">
+          <span>🕐 Generated: 2024-07-22 14:38:42</span>
+          <span>📋 Review ID: rev_a3f8c2d1</span>
+          <span>🔧 Analyzers: Semgrep · Bandit · LLM</span>
+        </div>
+      </div>
+      <div class="hr-stats">
+        <div class="hr-stat"><div class="hr-stat-val">24</div><div class="hr-stat-lbl">Total Issues</div></div>
+        <div class="hr-stat"><div class="hr-stat-val hr-gate-fail">3</div><div class="hr-stat-lbl">Critical</div></div>
+        <div class="hr-stat"><div class="hr-stat-val" style="color:#ea580c">7</div><div class="hr-stat-lbl">High</div></div>
+        <div class="hr-stat"><div class="hr-stat-val hr-gate-fail">✗ FAIL</div><div class="hr-stat-lbl">Quality Gate</div></div>
+      </div>
+      <div class="hr-body">
+        <div class="hr-section">
+          <h3>🚨 Critical Security Issues</h3>
+          <div class="hr-issue">
+            <span class="hr-sev hr-critical">CRITICAL</span>
+            <div class="hr-content">
+              <div class="hr-issue-title">Command Injection (B602) — subprocess shell=True</div>
+              <div class="hr-issue-loc">app/utils/executor.py : Line 48–49</div>
+              <div class="hr-issue-sug">✓ Tip: use list args instead of string concat, remove shell=True</div>
+            </div>
+          </div>
+          <div class="hr-issue">
+            <span class="hr-sev hr-critical">CRITICAL</span>
+            <div class="hr-content">
+              <div class="hr-issue-title">SQL Injection — directly concatenating user input into query</div>
+              <div class="hr-issue-loc">app/db/queries.py : Line 23</div>
+              <div class="hr-issue-sug">✓ Tip: use parameterized query, e.g. cursor.execute(sql, (param,))</div>
+            </div>
+          </div>
+          <div class="hr-issue">
+            <span class="hr-sev hr-critical">CRITICAL</span>
+            <div class="hr-content">
+              <div class="hr-issue-title">Hardcoded Credential — JWT Secret stored in plaintext</div>
+              <div class="hr-issue-loc">app/config.py : Line 12</div>
+              <div class="hr-issue-sug">✓ Tip: use env var os.environ["JWT_SECRET"]</div>
+            </div>
+          </div>
+        </div>
+        <div class="hr-section">
+          <h3>⚠️ High Severity Issues (7)</h3>
+          <div class="hr-issue">
+            <span class="hr-sev hr-high">HIGH</span>
+            <div class="hr-content">
+              <div class="hr-issue-title">Insecure Deserialization — pickle.loads() on untrusted data</div>
+              <div class="hr-issue-loc">app/cache/serializer.py : Line 35</div>
+            </div>
+          </div>
+          <div class="hr-issue">
+            <span class="hr-sev hr-high">HIGH</span>
+            <div class="hr-content">
+              <div class="hr-issue-title">SSL Verification Disabled — requests.get(url, verify=False)</div>
+              <div class="hr-issue-loc">app/clients/http.py : Line 18</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#6b7280;text-align:center;padding:8px;">5 more High issues…</div>
+        </div>
+      </div>
+      <div class="hr-footer">
+        Generated by CodeGuardian AI v0.3 · Powered by GPT-5.4-mini + Semgrep + Bandit · For reference only
+      </div>
+    </div>
+  </div>
+
+  <!-- Markdown Report -->
+  <div id="fmt-md" class="report-pane">
+    <div class="md-report">
+<span class="md-h1"># 🛡️ CodeGuardian AI Security Review Report</span>
+
+<span class="md-c">**Repository**: github.com/org/backend-api  **Branch**: main</span>
+<span class="md-c">**Generated**: 2024-07-22 14:38:42  **Review ID**: rev_a3f8c2d1</span>
+
+<span class="md-h2">## Summary</span>
+
+<span class="md-c">| Metric | Value |
+|------|------|</span>
+<span class="md-c">| Total Issues | 24 |</span>
+<span class="md-c">| Critical | </span><span class="md-r">3</span>
+<span class="md-c">| High | </span><span class="md-y">7</span>
+<span class="md-c">| Medium | </span><span class="md-b">9</span>
+<span class="md-c">| Low | 5 |</span>
+<span class="md-c">| Quality Gate | </span><span class="md-r">❌ FAIL</span>
+
+<span class="md-h2">## Critical Issues</span>
+
+<span class="md-h3">### 1. Command Injection (B602)</span>
+<span class="md-c">- **File**: `app/utils/executor.py:48`</span>
+<span class="md-c">- **Source**: bandit</span>
+<span class="md-c">- **Description**: subprocess uses shell=True, user input unfiltered</span>
+<span class="md-g">- **Fix**: use list args `subprocess.run(["cmd", arg])`</span>
+
+<span class="md-h3">### 2. SQL Injection</span>
+<span class="md-c">- **File**: `app/db/queries.py:23`</span>
+<span class="md-c">- **Source**: semgrep (sql-injection)</span>
+<span class="md-c">- **Description**: SQL query directly concatenates user input</span>
+<span class="md-g">- **Fix**: use parameterized query</span>
+
+<span class="md-h3">### 3. Hardcoded Credential</span>
+<span class="md-c">- **File**: `app/config.py:12`</span>
+<span class="md-c">- **Source**: llm</span>
+<span class="md-c">- **Description**: JWT_SECRET hardcoded in source code</span>
+<span class="md-g">- **Fix**: use environment variable</span>
+
+<span class="md-c">---</span>
+<span class="md-c">*Generated by CodeGuardian AI v0.3*</span>
+    </div>
+  </div>
+
+  <!-- PDF -->
+  <div id="fmt-pdf" class="report-pane">
+    <div class="pdf-pane">
+      <div class="pdf-icon">📄</div>
+      <div class="pdf-title">Generate PDF Report</div>
+      <div class="pdf-desc">
+        PDF report is rendered server-side by WeasyPrint, containing the full issue list,<br>code snippets, fix suggestions, and statistics charts.<br>
+        <span style="font-family:monospace;font-size:11px;color:var(--muted);">GET /api/v1/reviews/rev_a3f8c2d1/report?format=pdf</span>
+      </div>
+      <button class="btn-pdf" onclick="this.textContent='⏳ Rendering server-side…';setTimeout(()=>this.textContent='✓ PDF generated, downloading',1500)">
+        ⬇ Download PDF Report
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showFmt(fmt, el){
+  document.querySelectorAll('.report-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.fmt-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('fmt-'+fmt).classList.add('active');
+  el.classList.add('active');
+}
+</script>
+</div>
+</div>
+</div>
+</body>
+</html>

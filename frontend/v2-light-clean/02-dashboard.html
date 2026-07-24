@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — CodeGuardian AI</title>
+<style>
+:root{--bg:#f0f4f8;--surface:#ffffff;--s2:#e2e8f0;--border:rgba(0,0,0,0.10);--primary:#3b82f6;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#06b6d4;--text:#0f172a;--muted:#64748b;--r:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+.layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:16px 14px;border-bottom:1px solid var(--border);}
+.sb-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.ai{color:#818cf8;}
+.sb-nav{flex:1;padding:8px;overflow-y:auto;}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;}
+.sb-item:hover{background:var(--s2);color:var(--text);}
+.sb-item.active{background:rgba(99,102,241,.15);color:#818cf8;}
+.sb-item.sub{padding-left:26px;font-size:12px;}
+.sb-item span:first-child{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:8px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 10px 8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+.sb-uemail{font-size:10px;color:var(--muted);}
+.main-wrap{flex:1;overflow-y:auto;}
+/* Content */
+.content{padding:28px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.page-title{font-size:20px;font-weight:700;}
+.page-sub{font-size:13px;color:var(--muted);margin-top:2px;}
+.btn{padding:9px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:#4f46e5;transform:translateY(-1px);}
+/* Stat cards */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;position:relative;overflow:hidden;}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c);}
+.stat-icon{font-size:22px;margin-bottom:10px;}
+.stat-val{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px;}
+.stat-label{font-size:12px;color:var(--muted);}
+.stat-delta{font-size:11px;margin-top:8px;}
+.delta-up{color:var(--success);}
+.delta-down{color:var(--danger);}
+/* Charts row */
+.charts-row{display:grid;grid-template-columns:1fr 280px;gap:16px;margin-bottom:24px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+.card-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.card-title span{font-size:12px;color:var(--muted);font-weight:400;}
+/* Severity donut (CSS only) */
+.donut-wrap{display:flex;align-items:center;gap:24px;}
+.donut{width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--danger) 0% 12%,#f97316 12% 32%,var(--warning) 32% 60%,var(--info) 60% 85%,var(--muted) 85% 100%);flex-shrink:0;position:relative;}
+.donut-inner{position:absolute;inset:20px;background:var(--surface);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.donut-num{font-size:18px;font-weight:800;}
+.donut-lbl{font-size:9px;color:var(--muted);}
+.legend{display:flex;flex-direction:column;gap:8px;}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:12px;}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.leg-name{color:var(--muted);flex:1;}
+.leg-cnt{font-weight:600;}
+/* Activity bars */
+.activity{margin-bottom:6px;}
+.act-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12px;}
+.act-day{width:28px;color:var(--muted);}
+.act-bar-wrap{flex:1;background:var(--s2);border-radius:4px;height:8px;overflow:hidden;}
+.act-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#6366f1,#8b5cf6);transition:width .8s ease;}
+.act-num{width:24px;text-align:right;color:var(--muted);}
+/* Table */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-bottom:1px solid var(--border);text-align:left;font-weight:600;}
+tbody td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);}
+tbody tr:hover{background:rgba(255,255,255,.02);}
+tbody tr:last-child td{border-bottom:none;}
+.badge{padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;}
+.b-completed{background:rgba(16,185,129,.15);color:var(--success);}
+.b-running{background:rgba(59,130,246,.15);color:var(--info);}
+.b-pending{background:rgba(100,116,139,.15);color:#94a3b8;}
+.b-failed{background:rgba(239,68,68,.15);color:var(--danger);}
+.b-critical{background:rgba(239,68,68,.15);color:var(--danger);}
+.b-high{background:rgba(249,115,22,.15);color:#f97316;}
+.sev-pill{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
+.gate-pass{color:var(--success);}
+.gate-fail{color:var(--danger);}
+.mono{font-family:monospace;font-size:12px;color:#94a3b8;}
+a.row-link{color:var(--primary);text-decoration:none;font-size:12px;}
+a.row-link:hover{text-decoration:underline;}
+.empty-note{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr);}.charts-row{grid-template-columns:1fr;}.sidebar{display:none;}}
+
+.sidebar{background:#1e293b!important;border-right:1px solid #334155!important;}.sb-brand,.sb-sec,.sb-item,.sb-footer,.sb-uname,.sb-uemail{color:#f1f5f9!important;}.sb-item{color:#94a3b8!important;}.sb-item.active{background:rgba(59,130,246,.2)!important;color:#93c5fd!important;}.sb-avatar{background:#3b82f6!important;}.topbar{background:#ffffff!important;border-bottom:1px solid #e2e8f0!important;color:#0f172a!important;}.card,.widget{background:#ffffff!important;border:1px solid #e2e8f0!important;box-shadow:0 1px 4px rgba(0,0,0,0.06)!important;}.badge{background:#f1f5f9!important;color:#334155!important;}.table-row:hover{background:#f8fafc!important;}table thead tr{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}.tag{background:#dbeafe!important;color:#1d4ed8!important;}.btn{color:#fff!important;}.field input,.field select,.field textarea{background:#f8fafc!important;border:1px solid #cbd5e1!important;color:#0f172a!important;}.field input::placeholder,.field textarea::placeholder{color:#94a3b8!important;}.search-bar input{background:#f1f5f9!important;border:1px solid #e2e8f0!important;color:#0f172a!important;}.report-html{background:#f8fafc!important;color:#0f172a!important;}.kv span:first-child{color:#64748b!important;}.stage-item .stage-label{color:#64748b!important;}.pipeline-stage{background:#f1f5f9!important;}.filter-bar{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}.nav-tabs{border-bottom:1px solid #e2e8f0!important;}.nav-tab.active{border-bottom-color:#3b82f6!important;color:#3b82f6!important;}.nav-tab{color:#64748b!important;}.login-card{background:#fff!important;border:1px solid #e2e8f0!important;box-shadow:0 4px 24px rgba(0,0,0,0.08)!important;}.tab-btn.active{background:#3b82f6!important;color:#fff!important;}.tab-btn{background:#f1f5f9!important;color:#64748b!important;}.severity-chip.active{border-color:#3b82f6!important;}.code-block{background:#0f172a!important;color:#e2e8f0!important;}.upload-zone{background:#f8fafc!important;border-color:#cbd5e1!important;}.log-area{background:#0f172a!important;color:#e2e8f0!important;}.stat-card{background:#fff!important;border:1px solid #e2e8f0!important;}body{background:#f0f4f8!important;}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-icon">🛡️</div><span class="sb-title">CodeGuardian <span class="ai">AI</span></span></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="02-dashboard.html" class="sb-item active"><span>📊</span>Dashboard</a>
+    <a href="03-submit-review.html" class="sb-item"><span>➕</span>Submit Review</a>
+    <a href="04-review-list.html" class="sb-item"><span>📋</span>Review List</a>
+    <div class="sb-sec">Review Tools</div>
+    <a href="05-review-detail.html" class="sb-item sub"><span>🔍</span>Review Detail</a>
+    <a href="06-issue-viewer.html" class="sb-item sub"><span>⚠️</span>Issue Detail</a>
+    <a href="07-report-viewer.html" class="sb-item sub"><span>📄</span>Report Viewer</a>
+    <div class="sb-sec">Knowledge &amp; Integration</div>
+    <a href="08-knowledge-base.html" class="sb-item"><span>📚</span>Knowledge Base</a>
+    <a href="09-webhook-setup.html" class="sb-item"><span>🔗</span>Webhook</a>
+    <a href="10-quality-gate.html" class="sb-item"><span>✅</span>Quality Gate</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-avatar">J</div><div><div class="sb-uname">John Doe</div><div class="sb-uemail">demo@codeguardian.ai</div></div></div>
+    <a href="index.html" class="sb-item"><span>🏠</span>Demo Home</a>
+  </div>
+</aside>
+<div class="main-wrap">
+    <div class="content">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Overview Dashboard</div>
+          <div class="page-sub">GET /api/v1/reviews/ · Last updated: 2 min ago</div>
+        </div>
+        <a href="03-submit-review.html" class="btn btn-primary">+ New Review</a>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-card" style="--c:var(--primary)">
+          <div class="stat-icon">🔍</div>
+          <div class="stat-val">1,247</div>
+          <div class="stat-label">Total Reviews</div>
+          <div class="stat-delta delta-up">↑ 23 added this week</div>
+        </div>
+        <div class="stat-card" style="--c:var(--danger)">
+          <div class="stat-icon">🚨</div>
+          <div class="stat-val">38</div>
+          <div class="stat-label">Open Critical Issues</div>
+          <div class="stat-delta delta-down">↑ 5 vs last week</div>
+        </div>
+        <div class="stat-card" style="--c:var(--success)">
+          <div class="stat-icon">✅</div>
+          <div class="stat-val">89<span style="font-size:16px">%</span></div>
+          <div class="stat-label">Quality Gate Pass Rate</div>
+          <div class="stat-delta delta-up">↑ 3% vs last month</div>
+        </div>
+        <div class="stat-card" style="--c:var(--warning)">
+          <div class="stat-icon">📚</div>
+          <div class="stat-val">142</div>
+          <div class="stat-label">Knowledge Docs</div>
+          <div class="stat-delta delta-up">↑ 8 added this month</div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-title">Reviews (Last 7 Days) <span>Daily</span></div>
+          <div class="activity">
+            <div class="act-row"><span class="act-day">Mon</span><div class="act-bar-wrap"><div class="act-bar" style="width:60%"></div></div><span class="act-num">12</span></div>
+            <div class="act-row"><span class="act-day">Tue</span><div class="act-bar-wrap"><div class="act-bar" style="width:85%"></div></div><span class="act-num">17</span></div>
+            <div class="act-row"><span class="act-day">Wed</span><div class="act-bar-wrap"><div class="act-bar" style="width:45%"></div></div><span class="act-num">9</span></div>
+            <div class="act-row"><span class="act-day">Thu</span><div class="act-bar-wrap"><div class="act-bar" style="width:100%"></div></div><span class="act-num">21</span></div>
+            <div class="act-row"><span class="act-day">Fri</span><div class="act-bar-wrap"><div class="act-bar" style="width:75%"></div></div><span class="act-num">15</span></div>
+            <div class="act-row"><span class="act-day">Sat</span><div class="act-bar-wrap"><div class="act-bar" style="width:30%"></div></div><span class="act-num">6</span></div>
+            <div class="act-row"><span class="act-day">Sun</span><div class="act-bar-wrap"><div class="act-bar" style="width:20%"></div></div><span class="act-num">4</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Issue Severity Distribution</div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <div class="donut-inner"><div class="donut-num">847</div><div class="donut-lbl">Total Issues</div></div>
+            </div>
+            <div class="legend">
+              <div class="leg-item"><div class="leg-dot" style="background:var(--danger)"></div><span class="leg-name">Critical</span><span class="leg-cnt">101</span></div>
+              <div class="leg-item"><div class="leg-dot" style="background:#f97316"></div><span class="leg-name">High</span><span class="leg-cnt">169</span></div>
+              <div class="leg-item"><div class="leg-dot" style="background:var(--warning)"></div><span class="leg-name">Medium</span><span class="leg-cnt">237</span></div>
+              <div class="leg-item"><div class="leg-dot" style="background:var(--info)"></div><span class="leg-name">Low</span><span class="leg-cnt">212</span></div>
+              <div class="leg-item"><div class="leg-dot" style="background:var(--muted)"></div><span class="leg-name">Info</span><span class="leg-cnt">128</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent reviews table -->
+      <div class="card">
+        <div class="card-title">Recent Reviews <span><a href="04-review-list.html" style="color:var(--primary);text-decoration:none;font-size:12px;">View All →</a></span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Repository</th><th>Type</th><th>Language</th><th>Issues</th><th>Critical</th><th>Quality Gate</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="mono">github.com/org/backend-api</span></td>
+                <td><span class="badge b-pending">GIT_REPO</span></td>
+                <td>Python</td><td>24</td><td><span class="sev-pill" style="background:rgba(239,68,68,.15);color:var(--danger)">3</span></td>
+                <td><span class="gate-fail">✗ FAIL</span></td>
+                <td><span class="badge b-completed">COMPLETED</span></td>
+                <td><a href="05-review-detail.html" class="row-link">Detail</a></td>
+              </tr>
+              <tr>
+                <td><span class="mono">github.com/org/frontend-app</span></td>
+                <td><span class="badge b-pending">GIT_REPO</span></td>
+                <td>TypeScript</td><td>11</td><td><span class="sev-pill" style="background:rgba(239,68,68,.15);color:var(--danger)">0</span></td>
+                <td><span class="gate-pass">✓ PASS</span></td>
+                <td><span class="badge b-completed">COMPLETED</span></td>
+                <td><a href="05-review-detail.html" class="row-link">Detail</a></td>
+              </tr>
+              <tr>
+                <td><span class="mono">gitlab.com/team/payments-svc</span></td>
+                <td><span class="badge b-pending">GIT_REPO</span></td>
+                <td>Go</td><td>—</td><td>—</td>
+                <td>—</td>
+                <td><span class="badge b-running">RUNNING</span></td>
+                <td><a href="05-review-detail.html" class="row-link">Detail</a></td>
+              </tr>
+              <tr>
+                <td><span class="mono">Code Snippet · Python</span></td>
+                <td><span class="badge b-pending">SNIPPET</span></td>
+                <td>Python</td><td>5</td><td><span class="sev-pill" style="background:rgba(239,68,68,.15);color:var(--danger)">1</span></td>
+                <td><span class="gate-fail">✗ FAIL</span></td>
+                <td><span class="badge b-completed">COMPLETED</span></td>
+                <td><a href="05-review-detail.html" class="row-link">Detail</a></td>
+              </tr>
+              <tr>
+                <td><span class="mono">github.com/org/data-pipeline</span></td>
+                <td><span class="badge b-pending">GIT_REPO</span></td>
+                <td>Python</td><td>—</td><td>—</td><td>—</td>
+                <td><span class="badge b-pending">PENDING</span></td>
+                <td><a href="05-review-detail.html" class="row-link">Detail</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</body>
+</html>

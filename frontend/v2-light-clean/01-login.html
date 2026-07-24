@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login & Register — CodeGuardian AI</title>
+<style>
+:root {
+  --bg:#0a0e1a;--surface:#111827;--surface-2:#1e2433;--border:rgba(255,255,255,0.08);
+  --primary:#6366f1;--success:#10b981;--danger:#ef4444;--text:#f1f5f9;--muted:#64748b;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+.top-bar{padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.back-link{font-size:13px;color:var(--muted);text-decoration:none;}
+.back-link:hover{color:var(--text);}
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px;background:radial-gradient(ellipse 60% 60% at 50% 0%,rgba(99,102,241,0.1) 0%,transparent 70%);}
+.container{width:100%;max-width:420px;}
+.auth-logo{text-align:center;margin-bottom:28px;}
+.auth-logo h2{font-size:22px;font-weight:700;margin-bottom:6px;}
+.auth-logo p{font-size:13px;color:var(--muted);}
+.tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:20px;}
+.tab{flex:1;padding:8px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:8px;font-size:14px;font-weight:500;transition:all .2s;}
+.tab.active{background:var(--primary);color:#fff;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+input{width:100%;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s;}
+input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.15);}
+input::placeholder{color:var(--muted);}
+.btn{width:100%;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:4px;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:#4f46e5;transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,.35);}
+.divider{text-align:center;margin:20px 0;font-size:11px;color:var(--muted);position:relative;}
+.divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);}
+.divider span{background:var(--surface);padding:0 12px;position:relative;}
+.response-panel{margin-top:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px;display:none;}
+.response-panel.show{display:block;}
+.resp-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-family:monospace;}
+.resp-body{font-family:monospace;font-size:11px;word-break:break-all;color:#a5b4fc;background:rgba(99,102,241,.08);border-radius:6px;padding:10px;line-height:1.6;white-space:pre-wrap;}
+.alert{padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
+.alert.show{display:block;}
+.alert.error{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:#fca5a5;}
+.alert.success{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.2);color:#6ee7b7;}
+.note{text-align:center;margin-top:18px;font-size:12px;color:var(--muted);line-height:1.7;}
+.note code{color:#818cf8;background:rgba(99,102,241,.1);padding:1px 5px;border-radius:4px;}
+.user-row{display:flex;gap:8px;align-items:center;font-size:12px;padding:4px 0;}
+.uk{color:var(--muted);width:70px;flex-shrink:0;}
+.badge{padding:2px 8px;border-radius:100px;font-size:11px;font-weight:600;background:rgba(16,185,129,.15);color:var(--success);}
+
+.sidebar{background:#1e293b!important;border-right:1px solid #334155!important;}.sb-brand,.sb-sec,.sb-item,.sb-footer,.sb-uname,.sb-uemail{color:#f1f5f9!important;}.sb-item{color:#94a3b8!important;}.sb-item.active{background:rgba(59,130,246,.2)!important;color:#93c5fd!important;}.sb-avatar{background:#3b82f6!important;}.topbar{background:#ffffff!important;border-bottom:1px solid #e2e8f0!important;color:#0f172a!important;}.card,.widget{background:#ffffff!important;border:1px solid #e2e8f0!important;box-shadow:0 1px 4px rgba(0,0,0,0.06)!important;}.badge{background:#f1f5f9!important;color:#334155!important;}.table-row:hover{background:#f8fafc!important;}table thead tr{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}.tag{background:#dbeafe!important;color:#1d4ed8!important;}.btn{color:#fff!important;}.field input,.field select,.field textarea{background:#f8fafc!important;border:1px solid #cbd5e1!important;color:#0f172a!important;}.field input::placeholder,.field textarea::placeholder{color:#94a3b8!important;}.search-bar input{background:#f1f5f9!important;border:1px solid #e2e8f0!important;color:#0f172a!important;}.report-html{background:#f8fafc!important;color:#0f172a!important;}.kv span:first-child{color:#64748b!important;}.stage-item .stage-label{color:#64748b!important;}.pipeline-stage{background:#f1f5f9!important;}.filter-bar{background:#f1f5f9!important;border-bottom:1px solid #e2e8f0!important;}.nav-tabs{border-bottom:1px solid #e2e8f0!important;}.nav-tab.active{border-bottom-color:#3b82f6!important;color:#3b82f6!important;}.nav-tab{color:#64748b!important;}.login-card{background:#fff!important;border:1px solid #e2e8f0!important;box-shadow:0 4px 24px rgba(0,0,0,0.08)!important;}.tab-btn.active{background:#3b82f6!important;color:#fff!important;}.tab-btn{background:#f1f5f9!important;color:#64748b!important;}.severity-chip.active{border-color:#3b82f6!important;}.code-block{background:#0f172a!important;color:#e2e8f0!important;}.upload-zone{background:#f8fafc!important;border-color:#cbd5e1!important;}.log-area{background:#0f172a!important;color:#e2e8f0!important;}.stat-card{background:#fff!important;border:1px solid #e2e8f0!important;}body{background:#f0f4f8!important;}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div class="brand"><div class="brand-icon">🛡️</div>CodeGuardian AI</div>
+  <a href="index.html" class="back-link">← Back to Demo List</a>
+</div>
+<div class="main">
+  <div class="container">
+    <div class="auth-logo">
+      <h2>Welcome Back</h2>
+      <p>AI-Powered Multi-Language Code Security Review Platform</p>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login',this)">Log In</button>
+      <button class="tab" onclick="switchTab('register',this)">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div id="paneLogin" class="card">
+      <div id="alertLogin" class="alert"></div>
+      <div class="form-group"><label>Email</label><input id="lEmail" type="email" value="demo@codeguardian.ai"></div>
+      <div class="form-group"><label>Password</label><input id="lPass" type="password" value="demo123456"></div>
+      <button class="btn btn-primary" onclick="doLogin()">Login</button>
+      <div class="divider"><span>Mock API Response</span></div>
+      <div id="respLogin" class="response-panel">
+        <div class="resp-label">POST /api/v1/auth/login → 200 OK</div>
+        <div class="resp-body" id="loginBody"></div>
+        <div style="margin-top:12px;" id="loginUser"></div>
+      </div>
+    </div>
+
+    <!-- Register -->
+    <div id="paneRegister" class="card" style="display:none;">
+      <div id="alertReg" class="alert"></div>
+      <div class="form-group"><label>Full Name</label><input id="rName" type="text" value="John Doe"></div>
+      <div class="form-group"><label>Email</label><input id="rEmail" type="email" value="john@example.com"></div>
+      <div class="form-group"><label>Password (min. 8 chars)</label><input id="rPass" type="password" value="securePass123"></div>
+      <button class="btn btn-primary" onclick="doRegister()">Create Account</button>
+      <div class="divider"><span>Mock API Response</span></div>
+      <div id="respReg" class="response-panel">
+        <div class="resp-label">POST /api/v1/auth/register → 201 Created</div>
+        <div class="resp-body" id="regBody"></div>
+      </div>
+    </div>
+
+    <p class="note">Demo Mode · Click to see API response structure<br>
+      In production, Token is stored in <code>Authorization: Bearer &lt;token&gt;</code> header</p>
+  </div>
+</div>
+<script>
+function switchTab(tab, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('paneLogin').style.display = tab==='login'?'block':'none';
+  document.getElementById('paneRegister').style.display = tab==='register'?'block':'none';
+}
+function alert_(id,type,msg){
+  const e=document.getElementById(id);e.className='alert show '+type;e.textContent=msg;
+  setTimeout(()=>e.classList.remove('show'),3000);
+}
+function doLogin(){
+  const email=document.getElementById('lEmail').value,pass=document.getElementById('lPass').value;
+  if(!email||!pass){alert_('alertLogin','error','Please enter email and password');return;}
+  const btn=event.target;btn.textContent='Logging in…';btn.disabled=true;
+  setTimeout(()=>{
+    btn.textContent='Login';btn.disabled=false;
+    const token='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZjQ3YWM4Yy0xMjM0LTQ1NjctODkwYS1iY2RlZjAxMjM0NTYiLCJlbWFpbCI6ImRlbW9AY29kZWd1YXJkaWFuLmFpIiwiZXhwIjoxNzIyMDAwMDAwfQ.DEMO_SIGNATURE';
+    document.getElementById('loginBody').textContent=JSON.stringify({access_token:token,token_type:"bearer"},null,2);
+    document.getElementById('loginUser').innerHTML=`
+      <div class="user-row"><span class="uk">User ID</span><span style="font-family:monospace;font-size:11px;color:#94a3b8">5f47ac8c-1234-4567-890a-bcdef0123456</span></div>
+      <div class="user-row"><span class="uk">Email</span><span>${email}</span></div>
+      <div class="user-row"><span class="uk">Status</span><span class="badge">Active</span></div>`;
+    document.getElementById('respLogin').classList.add('show');
+    alert_('alertLogin','success','✓ Login successful, Token acquired');
+  },900);
+}
+function doRegister(){
+  const name=document.getElementById('rName').value,email=document.getElementById('rEmail').value,pass=document.getElementById('rPass').value;
+  if(!name||!email||!pass){alert_('alertReg','error','Please fill in all fields');return;}
+  if(pass.length<8){alert_('alertReg','error','Password must be at least 8 characters');return;}
+  const btn=event.target;btn.textContent='Creating…';btn.disabled=true;
+  setTimeout(()=>{
+    btn.textContent='Create Account';btn.disabled=false;
+    document.getElementById('regBody').textContent=JSON.stringify({
+      id:"a1b2c3d4-5678-90ab-cdef-012345678901",email,full_name:name,
+      is_active:true,is_superuser:false,created_at:new Date().toISOString()
+    },null,2);
+    document.getElementById('respReg').classList.add('show');
+    alert_('alertReg','success','✓ Registration successful, please switch to login tab');
+  },900);
+}
+</script>
+</body>
+</html>
