@@ -36,11 +36,29 @@ class Settings(BaseSettings):
     celery_result_backend: str = "redis://localhost:6379/1"
 
     # ── LLM ──────────────────────────────────────────────────────────
+    llm_provider: Literal["openai", "groq", "ollama"] = "groq"
     openai_api_key: str = ""
     openai_model: str = "gpt-5.5"
+    openai_base_url: str = ""
+    groq_api_key: str = ""
+    groq_model: str = "qwen/qwen3.6-27b"
+    groq_base_url: str = "https://api.groq.com/openai/v1"
     openai_embedding_model: str = "text-embedding-3-small"
-    ollama_base_url: str = ""
-    ollama_model: str = ""
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen3-coder:30b"
+    embedding_provider: Literal["openai", "local", "ollama", "disabled"] = "local"
+    local_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    ollama_embedding_model: str = "embeddinggemma"
+
+    @property
+    def llm_is_configured(self) -> bool:
+        if self.llm_provider == "openai":
+            return bool(self.openai_api_key)
+        if self.llm_provider == "groq":
+            return bool(self.groq_api_key)
+        if self.llm_provider == "ollama":
+            return bool(self.ollama_base_url and self.ollama_model)
+        return False
 
     # ── File Storage (S3 / MinIO) ─────────────────────────────────────
     s3_endpoint: str = "http://localhost:9000"

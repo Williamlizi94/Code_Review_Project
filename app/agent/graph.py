@@ -22,12 +22,36 @@ REVIEW_TOOLS = [run_semgrep, run_linters, parse_ast, get_git_diff]
 
 
 def _build_llm() -> ChatOpenAI:
-    return ChatOpenAI(
-        model=settings.openai_model,
-        api_key=settings.openai_api_key,
-        temperature=0,
-        max_tokens=4096,
-    )
+    common_kwargs: dict[str, Any] = {
+        "temperature": 0,
+        "max_tokens": 4096,
+    }
+
+    if settings.llm_provider == "groq":
+        return ChatOpenAI(
+            model=settings.groq_model,
+            api_key=settings.groq_api_key,
+            base_url=settings.groq_base_url,
+            model_kwargs={"reasoning_format": "hidden"},
+            **common_kwargs,
+        )
+
+    if settings.llm_provider == "ollama":
+        return ChatOpenAI(
+            model=settings.ollama_model,
+            api_key="ollama",
+            base_url=f"{settings.ollama_base_url.rstrip('/')}/v1",
+            **common_kwargs,
+        )
+
+    kwargs: dict[str, Any] = {
+        "model": settings.openai_model,
+        "api_key": settings.openai_api_key,
+        **common_kwargs,
+    }
+    if settings.openai_base_url:
+        kwargs["base_url"] = settings.openai_base_url
+    return ChatOpenAI(**kwargs)
 
 
 def _extract_json_from_response(text: str) -> dict:

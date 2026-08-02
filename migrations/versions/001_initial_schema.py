@@ -195,12 +195,8 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["doc_id"], ["knowledge_documents.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    # Add pgvector column for embeddings (1536 dims for text-embedding-3-small)
-    op.execute("ALTER TABLE knowledge_chunks ADD COLUMN embedding vector(1536)")
-    op.execute(
-        "CREATE INDEX ix_knowledge_chunks_embedding ON knowledge_chunks "
-        "USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"
-    )
+    # Dimensionless vectors allow switching embedding providers without another migration.
+    op.execute("ALTER TABLE knowledge_chunks ADD COLUMN embedding vector")
 
     # ── audit_logs ────────────────────────────────────────────────────
     op.create_table(

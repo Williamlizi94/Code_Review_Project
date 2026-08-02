@@ -17,8 +17,11 @@ class LLMReviewStage(PipelineStage):
         if ctx.error:
             return ctx
 
-        if not settings.openai_api_key:
-            logger.warning("[Stage 5] No OPENAI_API_KEY configured — skipping LLM review")
+        if not settings.llm_is_configured:
+            logger.warning(
+                f"[Stage 5] No API configured for {settings.llm_provider} LLM provider; "
+                "skipping LLM review"
+            )
             return ctx
 
         # Build diff text for incremental mode
