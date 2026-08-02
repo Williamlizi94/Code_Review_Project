@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit Code Review — CodeGuardian AI</title>
+<style>
+:root{--bg:#0b0b1e;--surface:rgba(255,255,255,0.06);--s2:rgba(255,255,255,0.10);--border:rgba(255,255,255,0.12);--primary:#a78bfa;--success:#34d399;--warning:#fbbf24;--danger:#f87171;--info:#67e8f9;--text:#f1f5f9;--muted:#94a3b8;--r:14px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+.layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:16px 14px;border-bottom:1px solid var(--border);}
+.sb-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.ai{color:#818cf8;}
+.sb-nav{flex:1;padding:8px;overflow-y:auto;}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;}
+.sb-item:hover{background:var(--s2);color:var(--text);}
+.sb-item.active{background:rgba(99,102,241,.15);color:#818cf8;}
+.sb-item.sub{padding-left:26px;font-size:12px;}
+.sb-item span:first-child{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:8px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 10px 8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+.sb-uemail{font-size:10px;color:var(--muted);}
+.main-wrap{flex:1;overflow-y:auto;}
+.topnav{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.nav-links{display:flex;gap:20px;}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;}
+.nav-links a:hover{color:var(--text);}
+.page{max-width:760px;margin:0 auto;padding:36px 24px 80px;}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+/* Type selector */
+.type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+.type-btn{background:var(--surface);border:2px solid var(--border);border-radius:var(--r);padding:16px 10px;cursor:pointer;text-align:center;transition:all .2s;}
+.type-btn:hover{border-color:rgba(99,102,241,.4);}
+.type-btn.active{border-color:var(--primary);background:rgba(99,102,241,.08);}
+.type-btn .t-icon{font-size:22px;margin-bottom:6px;}
+.type-btn .t-name{font-size:13px;font-weight:600;color:var(--text);}
+.type-btn .t-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+/* Form */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px;}
+.section-title{font-size:14px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px;color:#e2e8f0;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-group{margin-bottom:14px;}
+.form-group:last-child{margin-bottom:0;}
+label{display:block;font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.label-opt{color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;}
+input,select,textarea{width:100%;padding:10px 12px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s;font-family:inherit;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+input::placeholder,textarea::placeholder{color:var(--muted);}
+textarea{resize:vertical;font-family:monospace;font-size:12px;line-height:1.6;}
+select option{background:var(--s2);}
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.chip{padding:5px 12px;border-radius:100px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--s2);cursor:pointer;transition:all .15s;color:#94a3b8;}
+.chip.on{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.5);color:#a5b4fc;}
+/* Mode radio */
+.mode-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mode-opt{background:var(--s2);border:2px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:all .15s;}
+.mode-opt.active{border-color:var(--primary);background:rgba(99,102,241,.08);}
+.mode-opt h4{font-size:13px;font-weight:600;margin-bottom:3px;}
+.mode-opt p{font-size:11px;color:var(--muted);}
+/* Submit area */
+.submit-area{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.btn{padding:10px 22px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:#4f46e5;transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,.35);}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,.2);}
+.api-hint{font-size:11px;color:var(--muted);font-family:monospace;}
+/* Response */
+.response-wrap{margin-top:20px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:16px;display:none;}
+.response-wrap.show{display:block;}
+.resp-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-family:monospace;}
+.resp-body{font-family:monospace;font-size:11px;color:#a5b4fc;background:rgba(99,102,241,.06);border-radius:6px;padding:12px;line-height:1.7;white-space:pre-wrap;word-break:break-all;}
+.loading{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);padding:8px 0;}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+body{background:radial-gradient(ellipse at 20% 20%,#1e1040 0%,#0b0b1e 60%)!important;}.sidebar{background:rgba(255,255,255,0.05)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;border-right:1px solid rgba(255,255,255,0.10)!important;}.card,.widget,.stat-card,.login-card{background:rgba(255,255,255,0.06)!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,0.12)!important;}.topbar{background:rgba(255,255,255,0.04)!important;backdrop-filter:blur(12px)!important;}.field input,.field select,.field textarea,.search-bar input{background:rgba(255,255,255,0.07)!important;border:1px solid rgba(255,255,255,0.15)!important;}.btn-primary{background:rgba(167,139,250,0.8)!important;backdrop-filter:blur(8px)!important;}.sb-item.active{background:rgba(167,139,250,0.2)!important;color:#c4b5fd!important;}.pipeline-stage{background:rgba(255,255,255,0.05)!important;}.upload-zone{background:rgba(255,255,255,0.04)!important;border:2px dashed rgba(167,139,250,0.4)!important;}.log-area{background:rgba(0,0,0,0.4)!important;backdrop-filter:blur(8px)!important;}.table-row:hover{background:rgba(167,139,250,0.08)!important;}table thead tr{background:rgba(255,255,255,0.05)!important;}.nav-tab.active{color:#c4b5fd!important;border-bottom-color:#a78bfa!important;}.tag{background:rgba(167,139,250,0.15)!important;color:#c4b5fd!important;}.filter-bar{background:rgba(255,255,255,0.03)!important;}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-icon">🛡️</div><span class="sb-title">CodeGuardian <span class="ai">AI</span></span></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="02-dashboard.html" class="sb-item"><span>📊</span>Dashboard</a>
+    <a href="03-submit-review.html" class="sb-item active"><span>➕</span>Submit Review</a>
+    <a href="04-review-list.html" class="sb-item"><span>📋</span>Review List</a>
+    <div class="sb-sec">Review Tools</div>
+    <a href="05-review-detail.html" class="sb-item sub"><span>🔍</span>Review Detail</a>
+    <a href="06-issue-viewer.html" class="sb-item sub"><span>⚠️</span>Issue Detail</a>
+    <a href="07-report-viewer.html" class="sb-item sub"><span>📄</span>Report Viewer</a>
+    <div class="sb-sec">Knowledge &amp; Integration</div>
+    <a href="08-knowledge-base.html" class="sb-item"><span>📚</span>Knowledge Base</a>
+    <a href="09-webhook-setup.html" class="sb-item"><span>🔗</span>Webhook</a>
+    <a href="10-quality-gate.html" class="sb-item"><span>✅</span>Quality Gate</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-avatar">J</div><div><div class="sb-uname">John Doe</div><div class="sb-uemail">demo@codeguardian.ai</div></div></div>
+    <a href="index.html" class="sb-item"><span>🏠</span>Demo Home</a>
+  </div>
+</aside>
+<div class="main-wrap">
+<div class="page">
+  <div class="page-title">Submit Code Review</div>
+  <div class="page-sub">POST /api/v1/reviews/ · Async processing, returns review_id immediately</div>
+
+  <!-- Step 1: Type -->
+  <div class="section">
+    <div class="section-title">① Select Input Type</div>
+    <div class="type-grid">
+      <div class="type-btn active" onclick="selectType('GIT_REPO',this)">
+        <div class="t-icon">🗂️</div>
+        <div class="t-name">Git Repository</div>
+        <div class="t-desc">Clone &amp; analyze remote repo</div>
+      </div>
+      <div class="type-btn" onclick="selectType('DIRECTORY',this)">
+        <div class="t-icon">📁</div>
+        <div class="t-name">Directory</div>
+        <div class="t-desc">Analyze local directory path</div>
+      </div>
+      <div class="type-btn" onclick="selectType('FILE',this)">
+        <div class="t-icon">📄</div>
+        <div class="t-name">Single File</div>
+        <div class="t-desc">Analyze a single file path</div>
+      </div>
+      <div class="type-btn" onclick="selectType('SNIPPET',this)">
+        <div class="t-icon">✂️</div>
+        <div class="t-name">Code Snippet</div>
+        <div class="t-desc">Paste code for direct analysis</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Target -->
+  <div class="section">
+    <div class="section-title">② Enter Target</div>
+    <div id="targetGit" class="form-group">
+      <label>Repository URL</label>
+      <input id="repoUrl" type="text" placeholder="https://github.com/org/repo.git" value="https://github.com/example/web-backend.git">
+      <div style="margin-top:10px;">
+        <label>Branch <span class="label-opt">(optional, default: main)</span></label>
+        <input type="text" placeholder="main" value="main" style="max-width:200px;">
+      </div>
+    </div>
+    <div id="targetSnippet" class="form-group" style="display:none;">
+      <div class="form-row">
+        <div>
+          <label>Language</label>
+          <select id="snippetLang">
+            <option value="python">Python</option>
+            <option value="typescript">TypeScript</option>
+            <option value="javascript">JavaScript</option>
+            <option value="go">Go</option>
+            <option value="java">Java</option>
+          </select>
+        </div>
+      </div>
+      <label>Code Content</label>
+      <textarea rows="8" placeholder="Paste code snippet to review…">import subprocess
+def run_cmd(user_input):
+    # DANGER: directly concatenating user input to shell command
+    result = subprocess.run(f"echo {user_input}", shell=True, capture_output=True)
+    return result.stdout</textarea>
+    </div>
+    <div id="targetPath" class="form-group" style="display:none;">
+      <label>Path</label>
+      <input type="text" placeholder="/path/to/directory or /path/to/file.py">
+    </div>
+  </div>
+
+  <!-- Step 3: Config -->
+  <div class="section">
+    <div class="section-title">③ Analysis Config</div>
+    <div class="form-row">
+      <div>
+        <label>Review Mode</label>
+        <div class="mode-opts">
+          <div class="mode-opt active" onclick="selectMode(this)">
+            <h4>FULL</h4>
+            <p>Analyze all code</p>
+          </div>
+          <div class="mode-opt" onclick="selectMode(this)">
+            <h4>INCREMENTAL</h4>
+            <p>Analyze git diff only</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label>Semgrep Ruleset <span class="label-opt">(optional)</span></label>
+        <select>
+          <option value="">Auto select (recommended)</option>
+          <option value="owasp-top-ten">OWASP Top Ten</option>
+          <option value="p/python">Python Security</option>
+          <option value="p/typescript">TypeScript Quality</option>
+          <option value="p/golang">Go Best Practices</option>
+          <option value="p/java">Java Security</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:14px;">
+      <label>Languages <span class="label-opt">(multi-select, leave empty to auto-detect)</span></label>
+      <div class="chips" id="langChips">
+        <span class="chip" onclick="toggleChip(this)">Python</span>
+        <span class="chip on" onclick="toggleChip(this)">TypeScript</span>
+        <span class="chip" onclick="toggleChip(this)">JavaScript</span>
+        <span class="chip" onclick="toggleChip(this)">Go</span>
+        <span class="chip" onclick="toggleChip(this)">Java</span>
+        <span class="chip" onclick="toggleChip(this)">Rust</span>
+        <span class="chip" onclick="toggleChip(this)">C/C++</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>CI/CD Callback URL <span class="label-opt">(optional, notified on completion)</span></label>
+      <input type="text" placeholder="https://ci.example.com/hooks/codeguardian">
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="section">
+    <div class="submit-area">
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Ready to Submit</div>
+        <div class="api-hint">POST /api/v1/reviews/ · Authorization: Bearer &lt;token&gt;</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost">Reset</button>
+        <button class="btn btn-primary" onclick="doSubmit()">🚀 Submit Review</button>
+      </div>
+    </div>
+    <div id="submitResp" class="response-wrap">
+      <div class="resp-label">POST /api/v1/reviews/ → 202 Accepted</div>
+      <div class="resp-body" id="submitBody"></div>
+      <div style="margin-top:12px;font-size:13px;color:var(--muted);">Review added to Celery queue. Track progress via <a href="04-review-list.html" style="color:var(--primary);">Review List</a>.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentType='GIT_REPO';
+function selectType(type,el){
+  currentType=type;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('targetGit').style.display='none';
+  document.getElementById('targetSnippet').style.display='none';
+  document.getElementById('targetPath').style.display='none';
+  if(type==='GIT_REPO')document.getElementById('targetGit').style.display='block';
+  else if(type==='SNIPPET')document.getElementById('targetSnippet').style.display='block';
+  else document.getElementById('targetPath').style.display='block';
+}
+function selectMode(el){document.querySelectorAll('.mode-opt').forEach(m=>m.classList.remove('active'));el.classList.add('active');}
+function toggleChip(el){el.classList.toggle('on');}
+function doSubmit(){
+  const btn=document.querySelector('.btn-primary');btn.textContent='Submitting…';btn.disabled=true;
+  setTimeout(()=>{
+    btn.textContent='🚀 Submit Review';btn.disabled=false;
+    const id='rev_'+Math.random().toString(36).substr(2,8);
+    document.getElementById('submitBody').textContent=JSON.stringify({
+      id,type:currentType,
+      target:document.getElementById('repoUrl')?.value||'snippet',
+      status:'PENDING',mode:'FULL',
+      languages:['typescript'],
+      created_at:new Date().toISOString(),
+      message:'Review task accepted and queued'
+    },null,2);
+    document.getElementById('submitResp').classList.add('show');
+  },1200);
+}
+</script>
+</div>
+</div>
+</div>
+</body>
+</html>

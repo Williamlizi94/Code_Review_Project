@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review Detail — CodeGuardian AI</title>
+<style>
+:root{--bg:#0b0b1e;--surface:rgba(255,255,255,0.06);--s2:rgba(255,255,255,0.10);--border:rgba(255,255,255,0.12);--primary:#a78bfa;--success:#34d399;--warning:#fbbf24;--danger:#f87171;--info:#67e8f9;--text:#f1f5f9;--muted:#94a3b8;--r:14px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+.layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:16px 14px;border-bottom:1px solid var(--border);}
+.sb-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.ai{color:#818cf8;}
+.sb-nav{flex:1;padding:8px;overflow-y:auto;}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;font-weight:600;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;text-decoration:none;color:#94a3b8;font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;}
+.sb-item:hover{background:var(--s2);color:var(--text);}
+.sb-item.active{background:rgba(99,102,241,.15);color:#818cf8;}
+.sb-item.sub{padding-left:26px;font-size:12px;}
+.sb-item span:first-child{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:8px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 10px 8px;}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+.sb-uemail{font-size:10px;color:var(--muted);}
+.main-wrap{flex:1;overflow-y:auto;}
+.topnav{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.nav-links a{font-size:13px;color:var(--muted);text-decoration:none;margin-left:20px;}
+.nav-links a:hover{color:var(--text);}
+.page{max-width:960px;margin:0 auto;padding:28px 24px 60px;}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.breadcrumb a{color:var(--muted);text-decoration:none;}
+.breadcrumb a:hover{color:var(--primary);}
+/* Header card */
+.review-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px;}
+.rh-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;}
+.rh-title{font-size:17px;font-weight:700;margin-bottom:4px;}
+.rh-meta{font-size:12px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;}
+.rh-meta span{display:flex;align-items:center;gap:4px;}
+.badge{padding:4px 12px;border-radius:100px;font-size:12px;font-weight:700;}
+.b-completed{background:rgba(16,185,129,.15);color:var(--success);}
+.b-running{background:rgba(59,130,246,.15);color:var(--info);}
+.b-failed{background:rgba(239,68,68,.15);color:var(--danger);}
+.b-pending{background:rgba(100,116,139,.15);color:#94a3b8;}
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;}
+.mini-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;}
+.ms-val{font-size:24px;font-weight:800;line-height:1;}
+.ms-lbl{font-size:11px;color:var(--muted);margin-top:4px;}
+/* Pipeline */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+.card-title{font-size:14px;font-weight:600;margin-bottom:16px;}
+.pipeline{display:flex;align-items:center;gap:0;}
+.stage{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;}
+.stage::after{content:'';position:absolute;right:0;top:18px;width:calc(100% - 36px);height:2px;background:var(--border);left:calc(50% + 18px);}
+.stage:last-child::after{display:none;}
+.stage-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;position:relative;z-index:1;}
+.stage-done{background:rgba(16,185,129,.15);border:2px solid var(--success);}
+.stage-run{background:rgba(59,130,246,.15);border:2px solid var(--info);animation:pulse 1.5s ease infinite;}
+.stage-wait{background:var(--s2);border:2px solid var(--border);}
+.stage-name{font-size:10px;color:var(--muted);margin-top:6px;text-align:center;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.4);}50%{box-shadow:0 0 0 6px rgba(59,130,246,0);}}
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;gap:0;}
+.tab-btn{padding:10px 20px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+/* Issue list */
+.issue-item{border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .15s;}
+.issue-item:hover{border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.03);}
+.ii-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.sev-badge{padding:2px 9px;border-radius:4px;font-size:11px;font-weight:700;}
+.sev-critical{background:rgba(239,68,68,.15);color:var(--danger);}
+.sev-high{background:rgba(249,115,22,.15);color:#f97316;}
+.sev-medium{background:rgba(245,158,11,.15);color:var(--warning);}
+.sev-low{background:rgba(59,130,246,.15);color:var(--info);}
+.sev-info{background:rgba(100,116,139,.15);color:#94a3b8;}
+.src-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--s2);color:#94a3b8;}
+.ii-msg{font-size:13px;color:var(--text);margin-bottom:4px;}
+.ii-loc{font-family:monospace;font-size:11px;color:var(--muted);}
+.ii-sug{font-size:12px;color:#6ee7b7;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+.cat-tag{font-size:10px;color:#94a3b8;}
+.filter-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.fchip{padding:4px 12px;border-radius:100px;border:1px solid var(--border);background:var(--s2);font-size:11px;color:#94a3b8;cursor:pointer;transition:all .15s;}
+.fchip.on{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#a5b4fc;}
+.report-links{display:flex;gap:10px;flex-wrap:wrap;}
+.report-btn{padding:10px 18px;border:1px solid var(--border);border-radius:8px;background:var(--s2);color:var(--text);cursor:pointer;font-size:13px;font-weight:500;text-decoration:none;display:flex;align-items:center;gap:7px;transition:all .2s;}
+.report-btn:hover{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.08);color:#a5b4fc;}
+.empty{text-align:center;padding:40px;color:var(--muted);}
+.mono{font-family:monospace;font-size:12px;}
+
+body{background:radial-gradient(ellipse at 20% 20%,#1e1040 0%,#0b0b1e 60%)!important;}.sidebar{background:rgba(255,255,255,0.05)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;border-right:1px solid rgba(255,255,255,0.10)!important;}.card,.widget,.stat-card,.login-card{background:rgba(255,255,255,0.06)!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,0.12)!important;}.topbar{background:rgba(255,255,255,0.04)!important;backdrop-filter:blur(12px)!important;}.field input,.field select,.field textarea,.search-bar input{background:rgba(255,255,255,0.07)!important;border:1px solid rgba(255,255,255,0.15)!important;}.btn-primary{background:rgba(167,139,250,0.8)!important;backdrop-filter:blur(8px)!important;}.sb-item.active{background:rgba(167,139,250,0.2)!important;color:#c4b5fd!important;}.pipeline-stage{background:rgba(255,255,255,0.05)!important;}.upload-zone{background:rgba(255,255,255,0.04)!important;border:2px dashed rgba(167,139,250,0.4)!important;}.log-area{background:rgba(0,0,0,0.4)!important;backdrop-filter:blur(8px)!important;}.table-row:hover{background:rgba(167,139,250,0.08)!important;}table thead tr{background:rgba(255,255,255,0.05)!important;}.nav-tab.active{color:#c4b5fd!important;border-bottom-color:#a78bfa!important;}.tag{background:rgba(167,139,250,0.15)!important;color:#c4b5fd!important;}.filter-bar{background:rgba(255,255,255,0.03)!important;}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-icon">🛡️</div><span class="sb-title">CodeGuardian <span class="ai">AI</span></span></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main Menu</div>
+    <a href="02-dashboard.html" class="sb-item"><span>📊</span>Dashboard</a>
+    <a href="03-submit-review.html" class="sb-item"><span>➕</span>Submit Review</a>
+    <a href="04-review-list.html" class="sb-item"><span>📋</span>Review List</a>
+    <div class="sb-sec">Review Tools</div>
+    <a href="05-review-detail.html" class="sb-item sub active"><span>🔍</span>Review Detail</a>
+    <a href="06-issue-viewer.html" class="sb-item sub"><span>⚠️</span>Issue Detail</a>
+    <a href="07-report-viewer.html" class="sb-item sub"><span>📄</span>Report Viewer</a>
+    <div class="sb-sec">Knowledge &amp; Integration</div>
+    <a href="08-knowledge-base.html" class="sb-item"><span>📚</span>Knowledge Base</a>
+    <a href="09-webhook-setup.html" class="sb-item"><span>🔗</span>Webhook</a>
+    <a href="10-quality-gate.html" class="sb-item"><span>✅</span>Quality Gate</a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-avatar">J</div><div><div class="sb-uname">John Doe</div><div class="sb-uemail">demo@codeguardian.ai</div></div></div>
+    <a href="index.html" class="sb-item"><span>🏠</span>Demo Home</a>
+  </div>
+</aside>
+<div class="main-wrap">
+<div class="page">
+  <div class="breadcrumb">
+    <a href="04-review-list.html">Review List</a> › <span style="color:var(--text)">rev_a3f8c2d1</span>
+  </div>
+
+  <!-- Header -->
+  <div class="review-header">
+    <div class="rh-top">
+      <div>
+        <div class="rh-title">🗂️ github.com/org/backend-api</div>
+        <div class="rh-meta">
+          <span>📋 GIT_REPO · FULL mode</span>
+          <span>🌿 branch: main</span>
+          <span class="mono">rev_a3f8c2d1-5678-90ab-cdef</span>
+          <span>🕐 2024-07-22 14:32:10</span>
+        </div>
+      </div>
+      <span class="badge b-completed">COMPLETED</span>
+    </div>
+    <!-- Pipeline stages -->
+    <div class="pipeline">
+      <div class="stage"><div class="stage-icon stage-done">✓</div><div class="stage-name">Git Clone</div></div>
+      <div class="stage"><div class="stage-icon stage-done">✓</div><div class="stage-name">Static Analysis</div></div>
+      <div class="stage"><div class="stage-icon stage-done">✓</div><div class="stage-name">AST Parse</div></div>
+      <div class="stage"><div class="stage-icon stage-done">✓</div><div class="stage-name">RAG Retrieval</div></div>
+      <div class="stage"><div class="stage-icon stage-done">✓</div><div class="stage-name">LLM Review</div></div>
+      <div class="stage"><div class="stage-icon stage-done">✓</div><div class="stage-name">Result Merge</div></div>
+      <div class="stage"><div class="stage-icon stage-done">✓</div><div class="stage-name">Report Gen</div></div>
+      <div class="stage"><div class="stage-icon stage-done">✓</div><div class="stage-name">Notify</div></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="mini-stat">
+      <div class="ms-val">24</div>
+      <div class="ms-lbl">Total Issues</div>
+    </div>
+    <div class="mini-stat">
+      <div class="ms-val" style="color:var(--danger)">3</div>
+      <div class="ms-lbl">Critical</div>
+    </div>
+    <div class="mini-stat">
+      <div class="ms-val" style="color:#f97316">7</div>
+      <div class="ms-lbl">High</div>
+    </div>
+    <div class="mini-stat">
+      <div class="ms-val" style="color:var(--warning)">9</div>
+      <div class="ms-lbl">Medium</div>
+    </div>
+    <div class="mini-stat">
+      <div class="ms-val" style="color:var(--danger)">✗ FAIL</div>
+      <div class="ms-lbl">Quality Gate</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="card">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('issues',this)">Issues (24)</button>
+      <button class="tab-btn" onclick="showTab('reports',this)">Reports</button>
+      <button class="tab-btn" onclick="showTab('raw',this)">Raw Data</button>
+    </div>
+
+    <!-- Issues tab -->
+    <div id="tab-issues" class="tab-pane active">
+      <div class="filter-chips">
+        <span class="fchip on" onclick="filterSev('ALL',this)">All (24)</span>
+        <span class="fchip" onclick="filterSev('CRITICAL',this)" style="color:var(--danger)">Critical (3)</span>
+        <span class="fchip" onclick="filterSev('HIGH',this)" style="color:#f97316">High (7)</span>
+        <span class="fchip" onclick="filterSev('MEDIUM',this)" style="color:var(--warning)">Medium (9)</span>
+        <span class="fchip" onclick="filterSev('LOW',this)">Low (5)</span>
+      </div>
+
+      <a href="06-issue-viewer.html" style="text-decoration:none;">
+        <div class="issue-item">
+          <div class="ii-top">
+            <span class="sev-badge sev-critical">CRITICAL</span>
+            <span class="src-tag">bandit</span>
+            <span class="src-tag">B602</span>
+            <span class="cat-tag">• security</span>
+          </div>
+          <div class="ii-msg">subprocess call uses shell=True, command injection risk</div>
+          <div class="ii-loc">app/utils/executor.py : Line 47&ndash;49</div>
+          <div class="ii-sug">💡 Tip: use list args subprocess.run(['cmd', arg]) and remove shell=True</div>
+        </div>
+      </a>
+
+      <a href="06-issue-viewer.html" style="text-decoration:none;">
+        <div class="issue-item">
+          <div class="ii-top">
+            <span class="sev-badge sev-critical">CRITICAL</span>
+            <span class="src-tag">semgrep</span>
+            <span class="src-tag">sql-injection</span>
+            <span class="cat-tag">• security</span>
+          </div>
+          <div class="ii-msg">SQL query directly concatenates user input, SQL injection risk</div>
+          <div class="ii-loc">app/db/queries.py : Line 23</div>
+          <div class="ii-sug">💡 Tip: use parameterized query cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))</div>
+        </div>
+      </a>
+
+      <a href="06-issue-viewer.html" style="text-decoration:none;">
+        <div class="issue-item">
+          <div class="ii-top">
+            <span class="sev-badge sev-critical">CRITICAL</span>
+            <span class="src-tag">llm</span>
+            <span class="cat-tag">• security</span>
+          </div>
+          <div class="ii-msg">JWT Secret hardcoded in source code, credential leak risk</div>
+          <div class="ii-loc">app/config.py : Line 12</div>
+          <div class="ii-sug">💡 Tip: read from env var JWT_SECRET = os.environ["JWT_SECRET"]</div>
+        </div>
+      </a>
+
+      <div class="issue-item">
+        <div class="ii-top">
+          <span class="sev-badge sev-high">HIGH</span>
+          <span class="src-tag">semgrep</span>
+          <span class="src-tag">insecure-deserialize</span>
+          <span class="cat-tag">• security</span>
+        </div>
+        <div class="ii-msg">Using pickle.loads() to deserialize untrusted data</div>
+        <div class="ii-loc">app/cache/serializer.py : Line 35</div>
+        <div class="ii-sug">💡 Tip: use json.loads() or msgpack instead</div>
+      </div>
+
+      <div class="issue-item">
+        <div class="ii-top">
+          <span class="sev-badge sev-high">HIGH</span>
+          <span class="src-tag">bandit</span>
+          <span class="src-tag">B501</span>
+          <span class="cat-tag">• security</span>
+        </div>
+        <div class="ii-msg">SSL verification disabled (verify=False), MITM attack risk</div>
+        <div class="ii-loc">app/clients/http.py : Line 18</div>
+        <div class="ii-sug">💡 Tip: remove verify=False or provide correct CA cert path</div>
+      </div>
+
+      <div class="issue-item">
+        <div class="ii-top">
+          <span class="sev-badge sev-medium">MEDIUM</span>
+          <span class="src-tag">eslint</span>
+          <span class="src-tag">no-eval</span>
+          <span class="cat-tag">• security</span>
+        </div>
+        <div class="ii-msg">eval() used for dynamic code execution, XSS risk</div>
+        <div class="ii-loc">static/js/utils.js : Line 104</div>
+      </div>
+
+      <div style="text-align:center;padding:14px;font-size:13px;color:var(--muted);">
+        18 more issues · <a href="06-issue-viewer.html" style="color:var(--primary);">View All →</a>
+      </div>
+    </div>
+
+    <!-- Reports tab -->
+    <div id="tab-reports" class="tab-pane">
+      <div class="report-links">
+        <a href="07-report-viewer.html" class="report-btn">📊 HTML Report <span style="color:var(--muted);font-size:11px;">Preview</span></a>
+        <a href="07-report-viewer.html" class="report-btn">📝 Markdown Report <span style="color:var(--muted);font-size:11px;">Download</span></a>
+        <a href="07-report-viewer.html" class="report-btn">📄 PDF Report <span style="color:var(--muted);font-size:11px;">Generate</span></a>
+      </div>
+      <div style="margin-top:16px;padding:14px;background:var(--s2);border-radius:8px;font-size:12px;color:var(--muted);">
+        API：GET /api/v1/reviews/rev_a3f8c2d1/report?format=html|markdown|pdf
+      </div>
+    </div>
+
+    <!-- Raw tab -->
+    <div id="tab-raw" class="tab-pane">
+      <pre style="font-family:monospace;font-size:11px;color:#a5b4fc;background:rgba(99,102,241,.06);border-radius:8px;padding:16px;overflow-x:auto;line-height:1.6;">{
+  "id": "rev_a3f8c2d1-5678-90ab-cdef",
+  "type": "GIT_REPO",
+  "target": "https://github.com/org/backend-api",
+  "branch": "main",
+  "mode": "FULL",
+  "status": "COMPLETED",
+  "languages": ["python", "javascript"],
+  "ruleset_id": null,
+  "issues_count": 24,
+  "critical_count": 3,
+  "high_count": 7,
+  "quality_gate_status": "FAIL",
+  "created_at": "2024-07-22T14:32:10Z",
+  "updated_at": "2024-07-22T14:38:42Z"
+}</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(name, el){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+}
+function filterSev(sev,el){
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+</script>
+</div>
+</div>
+</div>
+</body>
+</html>
