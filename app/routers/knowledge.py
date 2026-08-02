@@ -2,7 +2,17 @@
 
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,13 +34,16 @@ router = APIRouter(prefix="/api/v1/knowledge", tags=["Knowledge Base"])
 
 @router.post("/upload", response_model=KnowledgeDocumentOut, status_code=status.HTTP_202_ACCEPTED)
 async def upload_document(
-    metadata: KnowledgeUploadRequest,
     background_tasks: BackgroundTasks,
+    title: str = Form(..., min_length=1, max_length=500),
+    category: str = Form(...),
+    version: str = Form("1.0", max_length=50),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> KnowledgeDocumentOut:
     """Upload a knowledge document for RAG indexing."""
+    metadata = KnowledgeUploadRequest(title=title, category=category, version=version)
     content = await file.read()
     try:
         text_content = content.decode("utf-8", errors="replace")

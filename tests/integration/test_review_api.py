@@ -1,5 +1,7 @@
 """Integration tests for the Review API."""
 
+from unittest.mock import AsyncMock
+
 import pytest
 from httpx import AsyncClient
 
@@ -113,3 +115,46 @@ async def test_snippet_review_requires_content(async_client: AsyncClient):
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_frontend_is_served_by_api(async_client: AsyncClient):
+    home = await async_client.get("/")
+    assert home.status_code == 200
+    assert "CodeGuardian" in home.text
+
+    api_client = await async_client.get("/api.js")
+    assert api_client.status_code == 200
+    assert "window.CodeGuardian" in api_client.text
+
+
+@pytest.mark.asyncio
+async def test_upload_and_list_knowledge_document(
+    async_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+):
+    await async_client.post(
+        "/api/v1/auth/register",
+        json={"email": "knowledge@example.com", "password": "password123"},
+    )
+    login_resp = await async_client.post(
+        "/api/v1/auth/login",
+        json={"email": "knowledge@example.com", "password": "password123"},
+    )
+    token = login_resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    ingest = AsyncMock()
+    monkeypatch.setattr("app.routers.knowledge._ingest_document_bg", ingest)
+
+    upload = await async_client.post(
+        "/api/v1/knowledge/upload",
+        headers=headers,
+        data={"title": "Secure Coding", "category": "coding_standard", "version": "1.0"},
+        files={"file": ("secure.md", b"# Secure coding", "text/markdown")},
+    )
+    assert upload.status_code == 202
+    assert upload.json()["title"] == "Secure Coding"
+
+    documents = await async_client.get("/api/v1/knowledge/documents", headers=headers)
+    assert documents.status_code == 200
+    assert len(documents.json()) == 1
+    assert documents.json()[0]["file_type"] == "md"

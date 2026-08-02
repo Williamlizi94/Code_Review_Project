@@ -2,10 +2,12 @@
 
 import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from app.config import get_settings
@@ -102,6 +104,10 @@ def create_app() -> FastAPI:
     @app.get("/health", tags=["Health"])
     async def health_check() -> dict:
         return {"status": "ok", "service": "CodeGuardian AI"}
+
+    frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+    if frontend_dir.is_dir():
+        app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
     return app
 

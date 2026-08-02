@@ -56,7 +56,7 @@ body{background:radial-gradient(ellipse at 20% 20%,#1e1040 0%,#0b0b1e 60%)!impor
 <body>
 <div class="top-bar">
   <div class="brand"><div class="brand-icon">🛡️</div>CodeGuardian AI</div>
-  <a href="index.html" class="back-link">← Back to Demo List</a>
+  <a href="index.html" class="back-link">← Back to Home</a>
 </div>
 <div class="main">
   <div class="container">
@@ -75,7 +75,7 @@ body{background:radial-gradient(ellipse at 20% 20%,#1e1040 0%,#0b0b1e 60%)!impor
       <div class="form-group"><label>Email</label><input id="lEmail" type="email" value="demo@codeguardian.ai"></div>
       <div class="form-group"><label>Password</label><input id="lPass" type="password" value="demo123456"></div>
       <button class="btn btn-primary" onclick="doLogin()">Login</button>
-      <div class="divider"><span>Mock API Response</span></div>
+      <div class="divider"><span>API Response</span></div>
       <div id="respLogin" class="response-panel">
         <div class="resp-label">POST /api/v1/auth/login → 200 OK</div>
         <div class="resp-body" id="loginBody"></div>
@@ -90,15 +90,15 @@ body{background:radial-gradient(ellipse at 20% 20%,#1e1040 0%,#0b0b1e 60%)!impor
       <div class="form-group"><label>Email</label><input id="rEmail" type="email" value="john@example.com"></div>
       <div class="form-group"><label>Password (min. 8 chars)</label><input id="rPass" type="password" value="securePass123"></div>
       <button class="btn btn-primary" onclick="doRegister()">Create Account</button>
-      <div class="divider"><span>Mock API Response</span></div>
+      <div class="divider"><span>API Response</span></div>
       <div id="respReg" class="response-panel">
         <div class="resp-label">POST /api/v1/auth/register → 201 Created</div>
         <div class="resp-body" id="regBody"></div>
       </div>
     </div>
 
-    <p class="note">Demo Mode · Click to see API response structure<br>
-      In production, Token is stored in <code>Authorization: Bearer &lt;token&gt;</code> header</p>
+    <p class="note">Connected to the CodeGuardian API<br>
+      The access token is sent in the <code>Authorization: Bearer &lt;token&gt;</code> header</p>
   </div>
 </div>
 <script>
@@ -144,5 +144,7 @@ function doRegister(){
   },900);
 }
 </script>
+<script src="api.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
