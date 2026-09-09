@@ -1,106 +1,58 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>005 - Aurora Spatial | CodeGuardian</title>
+<title>CodeGuardian AI — Secure Code Reviews</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#070613;color:#eeedff;font-family:Arial,sans-serif;overflow-x:hidden}
-a{color:inherit;text-decoration:none}
-.bg{position:fixed;inset:0;background:radial-gradient(ellipse at 33% 28%,#4a2b8b,transparent 35%),radial-gradient(ellipse at 72% 70%,#087b7866,transparent 34%)}
-.bg:after{content:"";position:absolute;inset:0;background-image:radial-gradient(#fff5 1px,transparent 1px);background-size:45px 45px;mask-image:linear-gradient(#000,transparent)}
-.shell{position:relative;z-index:1;max-width:1450px;margin:auto;padding:24px 4vw 50px}
-.head{display:flex;align-items:center;justify-content:space-between;gap:18px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800}
-.logo{width:27px;height:27px;border-radius:50%;background:conic-gradient(#55f1d8,#a66cff,#55f1d8);box-shadow:0 0 28px #8e76ff;flex:0 0 auto}
-.head nav{display:flex;gap:28px;color:#8c88a6;font-size:11px}
-.head nav a:first-child,.head nav a:hover{color:#fff}
-.head button,.cta{border:1px solid #ffffff2c;background:#ffffff0b;color:#eee;padding:10px 15px;border-radius:99px;cursor:pointer}
-.hero{min-height:380px;padding:8vh 0 3vh;display:grid;grid-template-columns:1fr .55fr;align-items:center;gap:20px}
-.hero h1{font-size:clamp(3.5rem,6.5vw,7.5rem);line-height:.85;margin:0}
-.hero h1 span{background:linear-gradient(90deg,#62eed7,#bd7dff);background-clip:text;color:transparent}
-.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
-.cta.primary{background:linear-gradient(90deg,#55f1d8,#a66cff);color:#120d28;border:0;font-weight:800}
-.orb{width:245px;aspect-ratio:1;border-radius:50%;justify-self:center;position:relative;background:radial-gradient(circle at 35% 28%,#fff,#a46cff 9%,#211c4b 30%,#080716 68%);box-shadow:0 0 65px #824cff66,inset -25px -30px 50px #000;animation:float 5s ease-in-out infinite}
-.orb:before,.orb:after{content:"";position:absolute;inset:-22%;border:1px solid #7ef2dd66;border-radius:50%;transform:rotateX(68deg) rotateZ(-14deg)}
-.orb:after{inset:-40%;border-color:#aa6fff55;transform:rotateY(65deg) rotateZ(20deg)}
-.panels{display:grid;grid-template-columns:1.1fr .8fr .8fr;gap:12px}
-.card{min-height:210px;border:1px solid #ffffff20;background:#ffffff09;backdrop-filter:blur(24px);border-radius:20px;padding:20px;transition:.2s ease}
-.card:hover{transform:translateY(-3px);border-color:#7ef2dd88;background:#ffffff12}
-.card header{display:flex;justify-content:space-between;color:#8e89a8;font-size:9px;letter-spacing:.12em}
-.wave{display:flex;align-items:end;gap:5px;height:130px;padding-top:20px}
-.wave i{flex:1;height:var(--h);background:linear-gradient(#66f5d4,#6252ad33);border-radius:6px}
-.number{display:block;font-size:75px;margin-top:32px}
-.card p{font-size:10px;color:#8d89a6;line-height:1.6}
-.list{margin-top:23px;display:grid;gap:11px}
-.list div{display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #ffffff18;font-size:10px}
-.feature-links{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px}
-.feature-links a{border:1px solid #ffffff18;background:#ffffff08;border-radius:12px;padding:12px;font-size:11px;color:#bbb8d6;transition:.2s ease}
-.feature-links a:hover{border-color:#7ef2dd88;color:#fff;background:#ffffff12}
-.toast{position:fixed;z-index:5;right:25px;bottom:25px;background:#e9e5ff;color:#231842;padding:12px 17px;border-radius:99px;opacity:0;transform:translateY(15px);transition:.25s}
-.toast.on{opacity:1;transform:none}
-@keyframes float{50%{transform:translateY(-12px) rotate(5deg)}}
-@media(max-width:900px){.feature-links{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:760px){.head nav{display:none}.hero{grid-template-columns:1fr;min-height:480px}.hero h1{font-size:3.8rem}.orb{width:150px;margin-top:60px}.panels{grid-template-columns:1fr}.feature-links{grid-template-columns:1fr}}
+  :root{--ink:#f7f8ff;--muted:#b8bdd6;--line:rgba(255,255,255,.14);--panel:rgba(18,22,50,.74);--violet:#9a7cff;--mint:#6ff0d0}
+  *{box-sizing:border-box} body{margin:0;min-width:320px;color:var(--ink);font:16px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#080819}
+  a{color:inherit;text-decoration:none}.backdrop{position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 15% 0%,#5535a866,transparent 34%),radial-gradient(circle at 88% 20%,#087b7760,transparent 33%),linear-gradient(135deg,#080819 30%,#091c24)}
+  .shell{width:min(1180px,calc(100% - 48px));margin:auto;padding:26px 0 72px}.topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px}
+  .brand{display:flex;align-items:center;gap:11px;font-size:20px;font-weight:800;letter-spacing:-.4px}.logo{width:33px;height:33px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(135deg,#75f0d5,#8e70ff);color:#0c1231;box-shadow:0 8px 30px #6850cd77}
+  .nav{display:flex;gap:26px;color:var(--muted);font-weight:650;font-size:15px}.nav a:hover{color:#fff}.auth-actions{justify-self:end;display:flex;gap:12px}.button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 22px;border:1px solid var(--line);border-radius:11px;font-size:16px;font-weight:750;transition:.18s transform,.18s background,.18s border-color}.button:hover{transform:translateY(-2px);border-color:#a99aff;background:#ffffff14}.button.primary{border:0;color:#12102d;background:linear-gradient(110deg,#74efd5,#a281ff);box-shadow:0 10px 28px #7755ba55}
+  .hero{display:grid;grid-template-columns:1.12fr .88fr;align-items:center;gap:54px;padding:92px 4px 62px}.eyebrow{margin:0 0 16px;color:var(--mint);font-size:14px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}.hero h1{max-width:690px;margin:0;font-size:clamp(46px,6.4vw,79px);line-height:1.02;letter-spacing:-.065em}.hero h1 em{font-style:normal;background:linear-gradient(100deg,#7cf2d6,#a487ff);background-clip:text;color:transparent}.hero p{max-width:610px;margin:24px 0 30px;color:var(--muted);font-size:20px;line-height:1.6}.hero-actions{display:flex;gap:15px;flex-wrap:wrap}.hero-actions .button{min-height:52px;padding:0 26px;font-size:17px}.orb{width:min(100%,365px);aspect-ratio:1;justify-self:center;position:relative;border-radius:50%;background:radial-gradient(circle at 35% 26%,#fff 0 3%,#95f2dc 4% 9%,#9a75ff 18%,#242958 42%,#0b0b20 69%);box-shadow:0 0 0 28px #ffffff05,0 0 90px #7854d377,inset -30px -34px 70px #000}.orb:before,.orb:after{content:"";position:absolute;inset:-15%;border:1px solid #7af1dc77;border-radius:50%;transform:rotateX(68deg) rotateZ(-17deg)}.orb:after{inset:-29%;border-color:#b88cff66;transform:rotateY(64deg) rotateZ(20deg)}
+  .section-title{margin:0 0 20px;font-size:24px;letter-spacing:-.03em}.section-intro{margin:-8px 0 23px;color:var(--muted);font-size:17px}.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.metric{min-height:196px;padding:25px;border:1px solid var(--line);border-radius:18px;background:var(--panel);backdrop-filter:blur(18px)}.metric .label{color:var(--muted);font-size:13px;font-weight:800;letter-spacing:.1em}.metric .value{display:block;margin:19px 0 8px;font-size:48px;line-height:1;font-weight:850}.metric p{margin:0;color:var(--muted);font-size:16px}.metric-link{display:inline-block;margin-top:18px;color:var(--mint);font-size:16px;font-weight:750}
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:42px}.feature{min-height:150px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#ffffff08;transition:.18s}.feature:hover{background:#ffffff12;border-color:#b9aaff;transform:translateY(-3px)}.feature-icon{font-size:25px}.feature h3{margin:12px 0 5px;font-size:19px}.feature p{margin:0;color:var(--muted);font-size:15px}.footer{padding-top:52px;color:#878da9;font-size:14px;text-align:center}
+  @media(max-width:900px){.topbar{grid-template-columns:1fr auto}.nav{display:none}.hero{grid-template-columns:1fr;padding-top:68px}.orb{display:none}.metric-grid,.features{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:580px){.shell{width:min(100% - 30px,1180px);padding-top:16px}.topbar{gap:12px}.brand{font-size:17px}.logo{width:29px;height:29px}.auth-actions{gap:8px}.button{min-height:42px;padding:0 14px;font-size:14px}.hero{padding:60px 0 38px}.hero p{font-size:17px}.metric-grid,.features{grid-template-columns:1fr}.metric{min-height:168px}.hero-actions .button{width:100%}}
 </style>
 </head>
 <body>
-<div class="bg"></div>
-<div class="shell">
-  <header class="head">
-    <a class="brand" href="index.html"><i class="logo"></i>CodeGuardian</a>
-    <nav>
-      <a href="02-dashboard.html">Pulse</a>
-      <a href="04-review-list.html">Reviews</a>
-      <a href="03-submit-review.html">Repositories</a>
-      <a href="08-knowledge-base.html">Knowledge</a>
-    </nav>
-    <button id="invite">Invite team +</button>
+<div class="backdrop"></div>
+<main class="shell">
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="logo">🛡</span>CodeGuardian AI</a>
+    <nav class="nav" aria-label="Main navigation"><a href="02-dashboard.html">Dashboard</a><a href="03-submit-review.html">Reviews</a><a href="08-knowledge-base.html">Knowledge</a></nav>
+    <div class="auth-actions"><a class="button" href="01-login.html">Log in</a><a class="button primary" href="01-login.html#signup">Sign up</a></div>
   </header>
 
   <section class="hero">
     <div>
-      <h1>See what your<br>code is <span>becoming.</span></h1>
-      <div class="hero-actions">
-        <a class="cta primary" href="02-dashboard.html">Open dashboard</a>
-        <a class="cta" href="03-submit-review.html">Submit review</a>
-      </div>
+      <p class="eyebrow">AI-Powered code intelligence</p>
+      <h1>Review code.<br><em>Ship with confidence.</em></h1>
+      <p>Find security risks, reliability issues, and improvement opportunities with automated analysis and practical AI guidance.</p>
+      <div class="hero-actions"><a class="button primary" href="03-submit-review.html">Start a review</a><a class="button" href="02-dashboard.html">View dashboard</a></div>
     </div>
-    <div class="orb"></div>
+    <div class="orb" aria-hidden="true"></div>
   </section>
 
-  <section class="panels">
-    <a class="card" href="02-dashboard.html">
-      <header><span>REVIEW VELOCITY</span><span>7 DAYS UP</span></header>
-      <div class="wave"><i style="--h:35%"></i><i style="--h:48%"></i><i style="--h:42%"></i><i style="--h:68%"></i><i style="--h:54%"></i><i style="--h:88%"></i><i style="--h:72%"></i><i style="--h:94%"></i></div>
-    </a>
-    <a class="card" href="10-quality-gate.html">
-      <header><span>CODE CONFIDENCE</span><span>+4.2%</span></header>
-      <strong class="number">94<small>%</small></strong>
-      <p>Confidence is rising across every active repository.</p>
-    </a>
-    <a class="card" href="06-issue-viewer.html">
-      <header><span>LIVE SIGNALS</span><span>12 TOTAL</span></header>
-      <div class="list"><div><span>Security</span><b>02</b></div><div><span>Reliability</span><b>04</b></div><div><span>Quality</span><b>06</b></div></div>
-    </a>
+  <section aria-labelledby="overview-title">
+    <h2 class="section-title" id="overview-title">Your code quality, at a glance</h2>
+    <p class="section-intro">One workspace for reviews, findings, reports, and team knowledge.</p>
+    <div class="metric-grid">
+      <a class="metric" href="03-submit-review.html"><span class="label">NEW REVIEW</span><strong class="value">+</strong><p>Submit a repository or code snippet for analysis.</p><span class="metric-link">Start now →</span></a>
+      <a class="metric" href="04-review-list.html"><span class="label">REVIEW HISTORY</span><strong class="value">↗</strong><p>Track every review, issue, and quality gate result.</p><span class="metric-link">Open reviews →</span></a>
+      <a class="metric" href="06-issue-viewer.html"><span class="label">SECURITY FINDINGS</span><strong class="value">⌁</strong><p>Investigate detected risks with clear remediation guidance.</p><span class="metric-link">Explore issues →</span></a>
+    </div>
   </section>
 
-  <section class="feature-links" aria-label="Feature pages">
-    <a href="01-login.html">Login & Register</a>
-    <a href="04-review-list.html">Review List</a>
-    <a href="05-review-detail.html">Review Detail</a>
-    <a href="07-report-viewer.html">Report Viewer</a>
-    <a href="09-webhook-setup.html">Webhook Setup</a>
+  <section class="features" aria-label="Product features">
+    <a class="feature" href="05-review-detail.html"><div class="feature-icon">🔎</div><h3>Review details</h3><p>See evidence, severity, and suggested fixes in one place.</p></a>
+    <a class="feature" href="07-report-viewer.html"><div class="feature-icon">📄</div><h3>Reports</h3><p>Export structured results for engineering and security teams.</p></a>
+    <a class="feature" href="08-knowledge-base.html"><div class="feature-icon">📚</div><h3>Knowledge base</h3><p>Bring your team’s internal guidance into every review.</p></a>
   </section>
-</div>
-<div class="toast">邀请链接已复制</div>
-<script>
-const invite=document.getElementById('invite');
-const toast=document.querySelector('.toast');
-invite.addEventListener('click',()=>{toast.classList.add('on');setTimeout(()=>toast.classList.remove('on'),1800)});
-</script>
-<script src="api.js"></script>
-<script src="app.js"></script>
+  <footer class="footer">CodeGuardian AI · Automated reviews with actionable security guidance</footer>
+</main>
 </body>
 </html>
