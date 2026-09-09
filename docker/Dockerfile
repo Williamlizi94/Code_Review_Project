@@ -10,8 +10,19 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git curl build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . .
-RUN pip install .
+COPY pyproject.toml poetry.lock ./
+RUN pip install --no-cache-dir poetry \
+    && poetry config virtualenvs.create false \
+    && poetry install --only main --no-root --no-interaction \
+    && python -m venv /opt/analyzer-tools \
+    && /opt/analyzer-tools/bin/pip install --no-cache-dir semgrep bandit
+
+RUN ln -s /opt/analyzer-tools/bin/semgrep /usr/local/bin/semgrep \
+    && ln -s /opt/analyzer-tools/bin/bandit /usr/local/bin/bandit
+
+COPY alembic.ini ./
+COPY app ./app
+COPY migrations ./migrations
 
 EXPOSE 8080
 

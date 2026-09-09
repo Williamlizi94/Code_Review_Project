@@ -1,8 +1,6 @@
 """Git service — clone/pull repositories and write PR/MR inline comments."""
 
 import os
-import re
-import shutil
 import tempfile
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
@@ -10,8 +8,8 @@ from urllib.parse import urlparse, urlunparse
 from git import GitCommandError, InvalidGitRepositoryError, Repo
 from loguru import logger
 
-
 # ── Clone / Pull ──────────────────────────────────────────────────────────────
+
 
 def _inject_token(url: str, token: str) -> str:
     """Inject a personal access token into the clone URL."""
@@ -61,6 +59,7 @@ async def clone_or_pull(
 
 # ── Diff extraction ───────────────────────────────────────────────────────────
 
+
 def get_diff(repo_path: str, base_ref: str = "HEAD~1", head_ref: str = "HEAD") -> str:
     """Return unified diff text between two refs."""
     try:
@@ -72,7 +71,11 @@ def get_diff(repo_path: str, base_ref: str = "HEAD~1", head_ref: str = "HEAD") -
         return ""
 
 
-def get_changed_files(repo_path: str, base_ref: str = "HEAD~1", head_ref: str = "HEAD") -> list[str]:
+def get_changed_files(
+    repo_path: str,
+    base_ref: str = "HEAD~1",
+    head_ref: str = "HEAD",
+) -> list[str]:
     """Return list of changed file paths between two refs."""
     try:
         repo = Repo(repo_path)
@@ -83,6 +86,7 @@ def get_changed_files(repo_path: str, base_ref: str = "HEAD~1", head_ref: str = 
 
 
 # ── PR / MR inline comment writing ───────────────────────────────────────────
+
 
 async def write_github_pr_comments(
     token: str,

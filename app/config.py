@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,9 +25,7 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
     # ── Database ─────────────────────────────────────────────────────
-    database_url: str = (
-        "postgresql+asyncpg://codeguardian:codeguardian@localhost:5432/codeguardian"
-    )
+    database_url: str = "postgresql+asyncpg://codeguardian:codeguardian@localhost:5432/codeguardian"
 
     # ── Redis ────────────────────────────────────────────────────────
     redis_url: str = "redis://localhost:6379/0"
@@ -71,6 +70,19 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440  # 24 hours
+    google_oauth_client_id: str = ""
+    google_oauth_client_secret: str = ""
+    google_oauth_redirect_url: str = "https://reviewcodeai.com/api/v1/auth/google/callback"
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self) -> "Settings":
+        if self.app_env == "production" and (
+            self.jwt_secret == "change-me-in-production" or len(self.jwt_secret) < 32
+        ):
+            raise ValueError(
+                "JWT_SECRET must be changed to a random value of at least 32 characters"
+            )
+        return self
 
     # ── Analyzers ────────────────────────────────────────────────────
     analyzer_semgrep_enabled: bool = True

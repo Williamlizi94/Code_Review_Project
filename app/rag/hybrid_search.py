@@ -56,9 +56,7 @@ async def hybrid_search(
     bm25 = BM25Okapi(tokenized)
     bm25_scores = bm25.get_scores(query.lower().split())
 
-    bm25_ranked = sorted(
-        enumerate(bm25_scores), key=lambda x: x[1], reverse=True
-    )[: top_k * 3]
+    bm25_ranked = sorted(enumerate(bm25_scores), key=lambda x: x[1], reverse=True)[: top_k * 3]
 
     try:
         query_vec = await embed_single(query)

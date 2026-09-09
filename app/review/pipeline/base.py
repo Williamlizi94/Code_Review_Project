@@ -16,10 +16,10 @@ class PipelineContext:
 
     review_id: uuid.UUID
     user_id: uuid.UUID | None
-    review_type: str              # GIT_REPO | DIRECTORY | FILE | SNIPPET
-    target: str | None            # repo URL or local path
+    review_type: str  # GIT_REPO | DIRECTORY | FILE | SNIPPET
+    target: str | None  # repo URL or local path
     branch: str | None
-    mode: str                     # FULL | INCREMENTAL
+    mode: str  # FULL | INCREMENTAL
     languages: list[str] | None
     ruleset_id: str | None
     notify_webhook: str | None
@@ -36,6 +36,7 @@ class PipelineContext:
     report_html: str | None = None
     report_markdown: str | None = None
     error: str | None = None
+    temporary_paths: list[str] = field(default_factory=list)
 
 
 class PipelineStage(ABC):

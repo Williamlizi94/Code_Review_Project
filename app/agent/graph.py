@@ -8,6 +8,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from loguru import logger
+from pydantic import SecretStr
 
 from app.agent.tools.git_diff_tool import get_git_diff
 from app.agent.tools.linters_tool import run_linters
@@ -30,23 +31,25 @@ def _build_llm() -> ChatOpenAI:
     if settings.llm_provider == "groq":
         return ChatOpenAI(
             model=settings.groq_model,
-            api_key=settings.groq_api_key,
+            api_key=SecretStr(settings.groq_api_key),
             base_url=settings.groq_base_url,
-            model_kwargs={"reasoning_format": "hidden"},
+            # `reasoning_format` is Groq-specific. Send it through the
+            # OpenAI SDK's extension payload instead of its typed parameters.
+            extra_body={"reasoning_format": "hidden"},
             **common_kwargs,
         )
 
     if settings.llm_provider == "ollama":
         return ChatOpenAI(
             model=settings.ollama_model,
-            api_key="ollama",
+            api_key=SecretStr("ollama"),
             base_url=f"{settings.ollama_base_url.rstrip('/')}/v1",
             **common_kwargs,
         )
 
     kwargs: dict[str, Any] = {
         "model": settings.openai_model,
-        "api_key": settings.openai_api_key,
+        "api_key": SecretStr(settings.openai_api_key),
         **common_kwargs,
     }
     if settings.openai_base_url:

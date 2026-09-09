@@ -15,15 +15,19 @@ settings = get_settings()
 def verify_github_signature(payload: bytes, signature_header: str | None) -> None:
     """Validate GitHub's X-Hub-Signature-256 header."""
     if not settings.github_webhook_secret:
-        return  # Signature verification disabled if secret not set
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="GitHub webhook secret is not configured",
+        )
     if not signature_header:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing X-Hub-Signature-256 header",
         )
-    expected = "sha256=" + hmac.new(
-        settings.github_webhook_secret.encode(), payload, hashlib.sha256
-    ).hexdigest()
+    expected = (
+        "sha256="
+        + hmac.new(settings.github_webhook_secret.encode(), payload, hashlib.sha256).hexdigest()
+    )
     if not hmac.compare_digest(expected, signature_header):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

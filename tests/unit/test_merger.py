@@ -1,12 +1,18 @@
 """Unit tests for the result merger (deduplication + ranking)."""
 
-import pytest
-
 from app.analyzer.base import AnalyzerIssue
 from app.review.merger import merge_issues
 
 
-def make_issue(severity="MEDIUM", source="semgrep", file_path="foo.py", line=10, rule_id="r1", msg="test", suggestion=None):
+def make_issue(
+    severity="MEDIUM",
+    source="semgrep",
+    file_path="foo.py",
+    line=10,
+    rule_id="r1",
+    msg="test",
+    suggestion=None,
+):
     return AnalyzerIssue(
         severity=severity,
         source=source,

@@ -1,7 +1,7 @@
 """Unit tests for static analyzers (mocking subprocess)."""
 
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -20,27 +20,28 @@ class MockProcess:
 
 @pytest.mark.asyncio
 async def test_semgrep_parses_json_output():
-    sample_output = json.dumps({
-        "results": [
-            {
-                "check_id": "python.lang.security.audit.sql-injection",
-                "path": "app/views.py",
-                "start": {"line": 42},
-                "end": {"line": 42},
-                "extra": {
-                    "message": "Potential SQL injection",
-                    "severity": "ERROR",
-                    "lines": "cursor.execute(query)",
-                },
-            }
-        ]
-    }).encode()
+    sample_output = json.dumps(
+        {
+            "results": [
+                {
+                    "check_id": "python.lang.security.audit.sql-injection",
+                    "path": "app/views.py",
+                    "start": {"line": 42},
+                    "end": {"line": 42},
+                    "extra": {
+                        "message": "Potential SQL injection",
+                        "severity": "ERROR",
+                        "lines": "cursor.execute(query)",
+                    },
+                }
+            ]
+        }
+    ).encode()
 
     mock_proc = MockProcess(sample_output, returncode=1)
     with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
-        with patch("asyncio.wait_for", return_value=(sample_output, b"")):
-            analyzer = SemgrepAnalyzer()
-            issues = await analyzer.analyze("/tmp/test")
+        analyzer = SemgrepAnalyzer()
+        issues = await analyzer.analyze("/tmp/test")
 
     assert len(issues) == 1
     assert issues[0].source == "semgrep"
@@ -54,36 +55,36 @@ async def test_semgrep_handles_empty_results():
     mock_proc = MockProcess(sample_output, returncode=0)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
-        with patch("asyncio.wait_for", return_value=(sample_output, b"")):
-            analyzer = SemgrepAnalyzer()
-            issues = await analyzer.analyze("/tmp/test")
+        analyzer = SemgrepAnalyzer()
+        issues = await analyzer.analyze("/tmp/test")
 
     assert issues == []
 
 
 @pytest.mark.asyncio
 async def test_bandit_parses_json_output():
-    sample_output = json.dumps({
-        "results": [
-            {
-                "test_id": "B101",
-                "test_name": "assert_used",
-                "issue_text": "Use of assert detected.",
-                "issue_severity": "LOW",
-                "issue_confidence": "HIGH",
-                "filename": "app/utils.py",
-                "line_number": 15,
-                "code": "assert x > 0",
-                "issue_cwe": {"id": 703},
-            }
-        ]
-    }).encode()
+    sample_output = json.dumps(
+        {
+            "results": [
+                {
+                    "test_id": "B101",
+                    "test_name": "assert_used",
+                    "issue_text": "Use of assert detected.",
+                    "issue_severity": "LOW",
+                    "issue_confidence": "HIGH",
+                    "filename": "app/utils.py",
+                    "line_number": 15,
+                    "code": "assert x > 0",
+                    "issue_cwe": {"id": 703},
+                }
+            ]
+        }
+    ).encode()
 
     mock_proc = MockProcess(sample_output, returncode=1)
     with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
-        with patch("asyncio.wait_for", return_value=(sample_output, b"")):
-            analyzer = BanditAnalyzer()
-            issues = await analyzer.analyze("/tmp/test")
+        analyzer = BanditAnalyzer()
+        issues = await analyzer.analyze("/tmp/test")
 
     assert len(issues) == 1
     assert issues[0].rule_id == "B101"
@@ -94,6 +95,7 @@ async def test_bandit_parses_json_output():
 @pytest.mark.asyncio
 async def test_semgrep_disabled_returns_empty():
     from app.config import get_settings
+
     settings = get_settings()
     original = settings.analyzer_semgrep_enabled
     settings.analyzer_semgrep_enabled = False

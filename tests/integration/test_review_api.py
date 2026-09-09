@@ -1,9 +1,14 @@
 """Integration tests for the Review API."""
 
+import uuid
 from unittest.mock import AsyncMock
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.review import Review, ReviewIssue
 
 
 @pytest.mark.asyncio
@@ -158,3 +163,85 @@ async def test_upload_and_list_knowledge_document(
     assert documents.status_code == 200
     assert len(documents.json()) == 1
     assert documents.json()[0]["file_type"] == "md"
+
+
+@pytest.mark.asyncio
+async def test_snippet_language_is_persisted(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr("app.routers.reviews._trigger_celery_task", AsyncMock())
+    await async_client.post(
+        "/api/v1/auth/register",
+        json={"email": "language@example.com", "password": "password123"},
+    )
+    login = await async_client.post(
+        "/api/v1/auth/login",
+        json={"email": "language@example.com", "password": "password123"},
+    )
+    response = await async_client.post(
+        "/api/v1/reviews",
+        json={
+            "type": "SNIPPET",
+            "snippet_content": "print('hello')",
+            "snippet_language": "python",
+            "languages": ["python"],
+        },
+        headers={"Authorization": f"Bearer {login.json()['access_token']}"},
+    )
+
+    review_id = uuid.UUID(response.json()["id"])
+    review = (await db_session.execute(select(Review).where(Review.id == review_id))).scalar_one()
+    assert review.snippet_language == "python"
+
+
+@pytest.mark.asyncio
+async def test_review_list_applies_language_and_severity_filters(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr("app.routers.reviews._trigger_celery_task", AsyncMock())
+    await async_client.post(
+        "/api/v1/auth/register",
+        json={"email": "filters@example.com", "password": "password123"},
+    )
+    login = await async_client.post(
+        "/api/v1/auth/login",
+        json={"email": "filters@example.com", "password": "password123"},
+    )
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    response = await async_client.post(
+        "/api/v1/reviews",
+        json={
+            "type": "SNIPPET",
+            "snippet_content": "print('hello')",
+            "languages": ["python"],
+        },
+        headers=headers,
+    )
+    review_id = uuid.UUID(response.json()["id"])
+    db_session.add(
+        ReviewIssue(
+            review_id=review_id,
+            severity="HIGH",
+            source="test",
+            message="test issue",
+        )
+    )
+    await db_session.commit()
+
+    matching = await async_client.get("/api/v1/reviews?lang=python&severity=high", headers=headers)
+    assert matching.status_code == 200
+    assert matching.json()["total"] == 1
+
+    non_matching = await async_client.get(
+        "/api/v1/reviews?lang=go&severity=critical", headers=headers
+    )
+    assert non_matching.status_code == 200
+    assert non_matching.json()["total"] == 0
+
+    partial_language = await async_client.get("/api/v1/reviews?lang=py", headers=headers)
+    assert partial_language.status_code == 200
+    assert partial_language.json()["total"] == 0

@@ -39,6 +39,7 @@ class Review(Base, UUIDMixin, TimestampMixin):
     notify_webhook: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Raw code snippet (for SNIPPET type)
     snippet_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    snippet_language: Mapped[str | None] = mapped_column(String(50), nullable=True)
     # Local workspace path (set after git clone)
     workspace_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Error message if status=FAILED
@@ -48,9 +49,7 @@ class Review(Base, UUIDMixin, TimestampMixin):
     critical_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     high_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     # Quality gate result: PASS | FAIL | SKIPPED
-    quality_gate_status: Mapped[str] = mapped_column(
-        String(20), default="SKIPPED", nullable=False
-    )
+    quality_gate_status: Mapped[str] = mapped_column(String(20), default="SKIPPED", nullable=False)
 
     user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True

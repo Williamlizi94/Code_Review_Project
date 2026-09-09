@@ -48,7 +48,10 @@ async def upload_document(
     try:
         text_content = content.decode("utf-8", errors="replace")
     except Exception as exc:
-        raise HTTPException(status_code=400, detail="Could not decode file content as text") from exc
+        raise HTTPException(
+            status_code=400,
+            detail="Could not decode file content as text",
+        ) from exc
 
     file_ext = (file.filename or "").rsplit(".", 1)[-1].lower() if file.filename else ""
     lang_map = {
@@ -155,9 +158,7 @@ async def delete_document(
     current_user: User = Depends(get_current_user),
 ) -> None:
     """Delete a knowledge document and all its chunks."""
-    result = await db.execute(
-        select(KnowledgeDocument).where(KnowledgeDocument.id == doc_id)
-    )
+    result = await db.execute(select(KnowledgeDocument).where(KnowledgeDocument.id == doc_id))
     doc = result.scalar_one_or_none()
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")

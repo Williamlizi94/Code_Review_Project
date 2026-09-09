@@ -35,19 +35,25 @@ celery_app.conf.update(
     bind=True,
     max_retries=2,
     default_retry_delay=30,
-    soft_time_limit=1800,   # 30 min soft limit
-    time_limit=2100,         # 35 min hard limit
+    soft_time_limit=1800,  # 30 min soft limit
+    time_limit=2100,  # 35 min hard limit
 )
 def run_review_task(self, review_id: str) -> dict:
     """Celery task: run the full review pipeline for a given review ID."""
     logger.info(f"[Celery] Starting review pipeline for {review_id}")
 
     async def _run():
-        from app.database import AsyncSessionLocal
+        from app.database import AsyncSessionLocal, engine
         from app.review.service import run_review_pipeline
 
-        async with AsyncSessionLocal() as db:
-            await run_review_pipeline(uuid.UUID(review_id), db)
+        try:
+            async with AsyncSessionLocal() as db:
+                await run_review_pipeline(uuid.UUID(review_id), db)
+        finally:
+            # ``asyncio.run`` creates a fresh event loop for every Celery task.
+            # Dispose pooled asyncpg connections before that loop closes so a
+            # later task cannot receive a connection bound to the old loop.
+            await engine.dispose()
 
     try:
         asyncio.run(_run())

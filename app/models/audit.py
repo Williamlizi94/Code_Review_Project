@@ -1,10 +1,14 @@
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class AuditLog(Base, UUIDMixin, TimestampMixin):
@@ -30,9 +34,7 @@ class AuditLog(Base, UUIDMixin, TimestampMixin):
     # Extra context
     detail: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    operator: Mapped["User | None"] = relationship(  # noqa: F821
-        "User", back_populates="audit_logs"
-    )
+    operator: Mapped["User | None"] = relationship("User", back_populates="audit_logs")
 
     def __repr__(self) -> str:
         return f"<AuditLog {self.action} by={self.operator_id}>"

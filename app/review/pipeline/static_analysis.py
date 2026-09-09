@@ -7,6 +7,7 @@ import tempfile
 from loguru import logger
 
 from app.analyzer.bandit import BanditAnalyzer
+from app.analyzer.base import AnalyzerIssue
 from app.analyzer.eslint import ESLintAnalyzer
 from app.analyzer.semgrep import SemgrepAnalyzer
 from app.analyzer.staticcheck import StaticcheckAnalyzer
@@ -26,9 +27,8 @@ class StaticAnalysisStage(PipelineStage):
         # Determine analysis path
         if ctx.review_type == "SNIPPET":
             # Write snippet to a temp file
-            path = await _write_snippet_to_file(
-                ctx.snippet_content or "", ctx.snippet_language
-            )
+            path = await _write_snippet_to_file(ctx.snippet_content or "", ctx.snippet_language)
+            ctx.temporary_paths.append(path)
         elif ctx.workspace_path:
             path = ctx.workspace_path
         elif ctx.target and os.path.exists(ctx.target):
@@ -46,7 +46,9 @@ class StaticAnalysisStage(PipelineStage):
 
         # Language-specific linters
         is_python = not languages or "python" in languages
-        is_js_ts = not languages or any(l in languages for l in ("javascript", "typescript"))
+        is_js_ts = not languages or any(
+            language in languages for language in ("javascript", "typescript")
+        )
         is_go = not languages or "go" in languages
 
         if is_python:
@@ -57,9 +59,9 @@ class StaticAnalysisStage(PipelineStage):
             tasks.append(StaticcheckAnalyzer().analyze(path))
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        all_issues = []
+        all_issues: list[AnalyzerIssue] = []
         for result in results:
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 logger.warning(f"[Stage 2] Analyzer error: {result}")
             else:
                 all_issues.extend(result)

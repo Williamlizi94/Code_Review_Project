@@ -1,6 +1,5 @@
 """Stage 1: Clone or pull the target Git repository."""
 
-import os
 import tempfile
 
 from loguru import logger
@@ -22,6 +21,7 @@ class GitCloneStage(PipelineStage):
             return ctx
 
         workspace_root = tempfile.mkdtemp(prefix="codeguardian_")
+        ctx.temporary_paths.append(workspace_root)
         logger.info(f"[Stage 1] Cloning {ctx.target!r} branch={ctx.branch!r}")
         try:
             local_path = await clone_or_pull(

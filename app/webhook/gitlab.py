@@ -1,7 +1,5 @@
 """GitLab webhook handler."""
 
-import json
-
 from fastapi import HTTPException, Request, status
 from loguru import logger
 
@@ -13,7 +11,10 @@ settings = get_settings()
 def verify_gitlab_token(request: Request) -> None:
     """Validate GitLab's X-Gitlab-Token header."""
     if not settings.gitlab_webhook_token:
-        return
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="GitLab webhook token is not configured",
+        )
     token = request.headers.get("X-Gitlab-Token", "")
     if token != settings.gitlab_webhook_token:
         raise HTTPException(

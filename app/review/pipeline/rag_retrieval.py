@@ -25,8 +25,7 @@ class RAGRetrievalStage(PipelineStage):
 
         # Summarize top issues for retrieval query
         issue_summary = "; ".join(
-            f"{i.category or 'issue'}: {i.message[:100]}"
-            for i in ctx.static_issues[:10]
+            f"{i.category or 'issue'}: {i.message[:100]}" for i in ctx.static_issues[:10]
         )
         query = issue_summary or ctx.snippet_content or ""
         if len(query) > 500:
@@ -40,9 +39,7 @@ class RAGRetrievalStage(PipelineStage):
             if ranked:
                 rag_blocks = []
                 for r in ranked:
-                    rag_blocks.append(
-                        f"**[Relevance: {r.rrf_score:.3f}]**\n{r.content}"
-                    )
+                    rag_blocks.append(f"**[Relevance: {r.rrf_score:.3f}]**\n{r.content}")
                 ctx.rag_context = "\n\n---\n\n".join(rag_blocks)
                 logger.info(f"[Stage 4] Retrieved {len(ranked)} RAG chunks")
             else:

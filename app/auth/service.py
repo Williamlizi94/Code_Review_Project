@@ -1,6 +1,6 @@
 import hashlib
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -22,6 +22,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 # ── Password helpers ──────────────────────────────────────────────────────────
 
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
@@ -32,22 +33,21 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # ── JWT helpers ───────────────────────────────────────────────────────────────
 
+
 def create_access_token(user_id: uuid.UUID, email: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
+    expire = datetime.now(UTC) + timedelta(minutes=settings.jwt_expire_minutes)
     payload = {
         "sub": str(user_id),
         "email": email,
         "exp": expire,
-        "iat": datetime.now(timezone.utc),
+        "iat": datetime.now(UTC),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
 def decode_token(token: str) -> TokenData:
     try:
-        payload = jwt.decode(
-            token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
-        )
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
         user_id = payload.get("sub")
         email = payload.get("email")
         if user_id is None:
@@ -65,6 +65,7 @@ def decode_token(token: str) -> TokenData:
 
 
 # ── FastAPI dependency ────────────────────────────────────────────────────────
+
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
@@ -98,6 +99,7 @@ async def get_current_superuser(user: User = Depends(get_current_user)) -> User:
 
 # ── User CRUD helpers (used in auth router) ───────────────────────────────────
 
+
 async def authenticate_user(email: str, password: str, db: AsyncSession) -> User | None:
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
@@ -106,9 +108,7 @@ async def authenticate_user(email: str, password: str, db: AsyncSession) -> User
     return user
 
 
-async def create_user(
-    email: str, password: str, full_name: str | None, db: AsyncSession
-) -> User:
+async def create_user(email: str, password: str, full_name: str | None, db: AsyncSession) -> User:
     existing = await db.execute(select(User).where(User.email == email))
     if existing.scalar_one_or_none():
         raise HTTPException(
@@ -126,6 +126,7 @@ async def create_user(
 
 
 # ── Utility ───────────────────────────────────────────────────────────────────
+
 
 def sha256_digest(content: str | bytes) -> str:
     if isinstance(content, str):

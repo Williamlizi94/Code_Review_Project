@@ -3,7 +3,7 @@ import json
 
 from loguru import logger
 
-from app.analyzer.base import AnalyzerIssue, BaseAnalyzer
+from app.analyzer.base import AnalyzerIssue, BaseAnalyzer, CategoryType
 from app.config import get_settings
 
 settings = get_settings()
@@ -32,7 +32,7 @@ class StaticcheckAnalyzer(BaseAnalyzer):
                 cwd=path,
             )
             stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=180)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Staticcheck timed out")
             return []
         except FileNotFoundError:
@@ -52,7 +52,7 @@ class StaticcheckAnalyzer(BaseAnalyzer):
 
             code = obj.get("code", "")
             # SA = static analysis checks, S1 = simplifications, ST = style, QF = quickfixes
-            category = "maintainability"
+            category: CategoryType = "maintainability"
             if code.startswith("SA"):
                 category = "security" if "unsafe" in code.lower() else "maintainability"
             elif code.startswith("ST"):

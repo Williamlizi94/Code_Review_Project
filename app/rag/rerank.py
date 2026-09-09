@@ -13,6 +13,7 @@ def _get_reranker():
     if _reranker is None:
         try:
             from sentence_transformers import CrossEncoder
+
             _reranker = CrossEncoder(_RERANK_MODEL)
             logger.info(f"Loaded Cross-Encoder model: {_RERANK_MODEL}")
         except Exception as exc:

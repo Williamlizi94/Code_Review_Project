@@ -1,16 +1,19 @@
 """Review API endpoints."""
 
 import uuid
+from typing import cast
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
-from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy import Text, and_, func, or_, select, update
+from sqlalchemy import cast as sql_cast
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.analyzer.base import CategoryType, SeverityLevel
 from app.auth.service import get_current_user
 from app.database import get_db
-from app.models.review import Review, ReviewReport
+from app.models.review import Review, ReviewIssue, ReviewReport
 from app.models.user import User
 from app.report.pdf import generate_pdf_report
 from app.schemas.review import (
@@ -67,6 +70,7 @@ async def submit_review(
         ruleset_id=request.ruleset_id,
         notify_webhook=str(request.notify_webhook) if request.notify_webhook else None,
         snippet_content=request.snippet_content,
+        snippet_language=request.snippet_language,
         user_id=current_user.id,
         status="PENDING",
     )
@@ -144,7 +148,10 @@ async def get_report(
         )
         report = result.scalar_one_or_none()
         if not report or not report.content:
-            raise HTTPException(status_code=404, detail=f"{format.title()} report not yet generated")
+            raise HTTPException(
+                status_code=404,
+                detail=f"{format.title()} report not yet generated",
+            )
         if format == "html":
             return HTMLResponse(content=report.content)
         return PlainTextResponse(content=report.content, media_type="text/markdown")
@@ -154,13 +161,13 @@ async def get_report(
 
         issues = [
             AnalyzerIssue(
-                severity=i.severity,
+                severity=cast(SeverityLevel, i.severity),
                 source=i.source,
                 message=i.message,
                 file_path=i.file_path,
                 line_start=i.line_start,
                 rule_id=i.rule_id,
-                category=i.category,
+                category=cast(CategoryType | None, i.category),
                 suggestion=i.suggestion,
             )
             for i in review.issues
@@ -205,6 +212,15 @@ async def list_reviews(
         )
     if status:
         stmt = stmt.where(Review.status == status.upper())
+    if severity:
+        stmt = stmt.where(Review.issues.any(ReviewIssue.severity == severity.upper()))
+    if lang:
+        # SQLAlchemy's generic JSON ``contains`` operator compiles to a text
+        # LIKE expression that PostgreSQL cannot apply to a JSON column.  A
+        # quoted token in the serialized JSON array is portable across both
+        # PostgreSQL and the SQLite database used by the test suite.
+        language_token = f'"{lang.strip().lower()}"'
+        stmt = stmt.where(sql_cast(Review.languages, Text).contains(language_token))
 
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total = (await db.execute(count_stmt)).scalar_one()

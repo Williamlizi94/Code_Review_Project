@@ -28,6 +28,7 @@ class LLMReviewStage(PipelineStage):
         diff_text = None
         if ctx.mode == "INCREMENTAL" and ctx.workspace_path:
             from app.git.service import get_diff
+
             diff_text = get_diff(ctx.workspace_path)
 
         system_prompt = build_system_prompt(

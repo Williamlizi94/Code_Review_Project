@@ -20,10 +20,13 @@ def _get_openai_client() -> AsyncOpenAI:
     if _openai_client is None:
         if not settings.openai_api_key:
             raise RuntimeError("OPENAI_API_KEY is required for OpenAI embeddings")
-        kwargs = {"api_key": settings.openai_api_key}
         if settings.openai_base_url:
-            kwargs["base_url"] = settings.openai_base_url
-        _openai_client = AsyncOpenAI(**kwargs)
+            _openai_client = AsyncOpenAI(
+                api_key=settings.openai_api_key,
+                base_url=settings.openai_base_url,
+            )
+        else:
+            _openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
     return _openai_client
 
 

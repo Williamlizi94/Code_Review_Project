@@ -2,6 +2,7 @@
 
 import sys
 from contextlib import asynccontextmanager
+from importlib import import_module
 from pathlib import Path
 
 from fastapi import FastAPI, Request, status
@@ -16,6 +17,7 @@ settings = get_settings()
 
 
 # ── Logging setup ─────────────────────────────────────────────────────────────
+
 
 def _setup_logging() -> None:
     logger.remove()
@@ -34,6 +36,7 @@ def _setup_logging() -> None:
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     _setup_logging()
@@ -41,13 +44,14 @@ async def lifespan(app: FastAPI):
 
     # Ensure pgvector extension and DB tables exist
     try:
-        from app.database import engine
-        from app.models.base import Base
-        # Import all models to register them with the metadata
-        import app.models.user  # noqa: F401
-        import app.models.review  # noqa: F401
-        import app.models.knowledge  # noqa: F401
-        import app.models.audit  # noqa: F401
+        # Import all models to register them with the metadata.
+        for model_module in (
+            "app.models.audit",
+            "app.models.knowledge",
+            "app.models.review",
+            "app.models.user",
+        ):
+            import_module(model_module)
     except Exception as exc:
         logger.warning(f"DB warm-up skipped: {exc}")
 
@@ -57,6 +61,7 @@ async def lifespan(app: FastAPI):
 
 
 # ── App factory ───────────────────────────────────────────────────────────────
+
 
 def create_app() -> FastAPI:
     app = FastAPI(

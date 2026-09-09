@@ -46,11 +46,9 @@ def _split_code_by_functions(content: str, language: str) -> list[str]:
         boundaries.append(len(code_bytes))
         boundaries = sorted(set(boundaries))
 
-        chunks = []
+        chunks: list[str] = []
         for i in range(len(boundaries) - 1):
-            chunk = code_bytes[boundaries[i] : boundaries[i + 1]].decode(
-                errors="replace"
-            ).strip()
+            chunk = code_bytes[boundaries[i] : boundaries[i + 1]].decode(errors="replace").strip()
             if chunk:
                 if chunks and len(chunks[-1]) + len(chunk) < _CHUNK_SIZE:
                     chunks[-1] += "\n\n" + chunk
@@ -104,9 +102,7 @@ async def ingest_document(
     except Exception as exc:
         logger.error(f"Failed to embed document {doc_id}: {exc}")
         await db.execute(
-            update(KnowledgeDocument)
-            .where(KnowledgeDocument.id == doc_id)
-            .values(status="FAILED")
+            update(KnowledgeDocument).where(KnowledgeDocument.id == doc_id).values(status="FAILED")
         )
         await db.commit()
         return 0

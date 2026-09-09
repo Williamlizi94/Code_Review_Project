@@ -3,12 +3,12 @@ import json
 
 from loguru import logger
 
-from app.analyzer.base import AnalyzerIssue, BaseAnalyzer
+from app.analyzer.base import AnalyzerIssue, BaseAnalyzer, SeverityLevel
 from app.config import get_settings
 
 settings = get_settings()
 
-_SEVERITY_MAP = {
+_SEVERITY_MAP: dict[str, SeverityLevel] = {
     "HIGH": "HIGH",
     "MEDIUM": "MEDIUM",
     "LOW": "LOW",
@@ -30,7 +30,8 @@ class BanditAnalyzer(BaseAnalyzer):
         cmd = [
             "bandit",
             "-r",
-            "-f", "json",
+            "-f",
+            "json",
             "-q",
             path,
         ]
@@ -43,7 +44,7 @@ class BanditAnalyzer(BaseAnalyzer):
                 stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Bandit timed out")
             return []
         except FileNotFoundError:
@@ -51,7 +52,7 @@ class BanditAnalyzer(BaseAnalyzer):
             return []
 
         # Bandit exits 1 when issues found, 0 when none
-        if proc.returncode > 1:
+        if proc.returncode is None or proc.returncode > 1:
             logger.warning(f"Bandit error: {stderr.decode()}")
             return []
 
@@ -63,7 +64,7 @@ class BanditAnalyzer(BaseAnalyzer):
         issues: list[AnalyzerIssue] = []
         for result in data.get("results", []):
             raw_sev = result.get("issue_severity", "MEDIUM").upper()
-            severity = _SEVERITY_MAP.get(raw_sev, "MEDIUM")  # type: ignore[assignment]
+            severity = _SEVERITY_MAP.get(raw_sev, "MEDIUM")
             issues.append(
                 AnalyzerIssue(
                     severity=severity,

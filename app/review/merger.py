@@ -1,6 +1,6 @@
 """Result deduplication and severity-based ranking."""
 
-from app.analyzer.base import AnalyzerIssue, SEVERITY_ORDER
+from app.analyzer.base import SEVERITY_ORDER, AnalyzerIssue
 
 
 def merge_issues(issues: list[AnalyzerIssue]) -> list[AnalyzerIssue]:
@@ -22,9 +22,7 @@ def merge_issues(issues: list[AnalyzerIssue]) -> list[AnalyzerIssue]:
             if issue.suggestion and not existing.suggestion:
                 seen[key] = issue
             # Prefer higher severity
-            elif SEVERITY_ORDER.get(issue.severity, 99) < SEVERITY_ORDER.get(
-                existing.severity, 99
-            ):
+            elif SEVERITY_ORDER.get(issue.severity, 99) < SEVERITY_ORDER.get(existing.severity, 99):
                 seen[key] = issue
 
     unique = list(seen.values())
