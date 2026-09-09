@@ -75,4 +75,5 @@ async def _trigger_webhook_review(event_data: dict) -> None:
         run_review_task.delay(str(review.id))
     except Exception as exc:
         from loguru import logger
+
         logger.error(f"Failed to enqueue webhook review task: {exc}")

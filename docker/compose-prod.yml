@@ -2,33 +2,43 @@ version: "3.9"
 
 services:
   api:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    image: codeguardian-runtime:latest
     container_name: codeguardian-api
-    env_file: ../.env
-    ports:
-      - "8080:8080"
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --workers 4
+    command: sh -c "alembic upgrade head && /usr/local/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 --workers 1"
     restart: unless-stopped
 
   worker:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    image: codeguardian-runtime:latest
     container_name: codeguardian-worker
-    env_file: ../.env
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: celery -A app.worker worker --loglevel=info --concurrency=4
+    command: celery -A app.worker worker --loglevel=info --concurrency=2
     restart: unless-stopped
 
   postgres:
@@ -36,7 +46,7 @@ services:
     container_name: codeguardian-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-codeguardian}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-codeguardian}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-codeguardian}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -64,16 +74,32 @@ services:
     container_name: codeguardian-minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
     volumes:
       - minio_data:/data
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: codeguardian-caddy
+    depends_on:
+      - api
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../frontend:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
     restart: unless-stopped
 
 volumes:
   postgres_data:
   redis_data:
   minio_data:
+  caddy_data:
+  caddy_config:

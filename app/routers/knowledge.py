@@ -2,7 +2,17 @@
 
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,30 +32,36 @@ from app.schemas.knowledge import (
 router = APIRouter(prefix="/api/v1/knowledge", tags=["Knowledge Base"])
 
 
-# ── Upload document ───────────────────────────────────────────────────────────
-
 @router.post("/upload", response_model=KnowledgeDocumentOut, status_code=status.HTTP_202_ACCEPTED)
 async def upload_document(
-    metadata: KnowledgeUploadRequest,
     background_tasks: BackgroundTasks,
+    title: str = Form(..., min_length=1, max_length=500),
+    category: str = Form(...),
+    version: str = Form("1.0", max_length=50),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> KnowledgeDocumentOut:
-    """Upload a knowledge document for RAG indexing.
-
-    Supported file types: .txt, .md, .py, .js, .ts, .go, .java, .pdf (text extraction only)
-    """
+    """Upload a knowledge document for RAG indexing."""
+    metadata = KnowledgeUploadRequest(title=title, category=category, version=version)
     content = await file.read()
     try:
         text_content = content.decode("utf-8", errors="replace")
-    except Exception:
-        raise HTTPException(status_code=400, detail="Could not decode file content as text")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not decode file content as text",
+        ) from exc
 
     file_ext = (file.filename or "").rsplit(".", 1)[-1].lower() if file.filename else ""
     lang_map = {
-        "py": "python", "js": "javascript", "ts": "typescript",
-        "go": "go", "rs": "rust", "java": "java", "rb": "ruby",
+        "py": "python",
+        "js": "javascript",
+        "ts": "typescript",
+        "go": "go",
+        "rs": "rust",
+        "java": "java",
+        "rb": "ruby",
     }
     language = lang_map.get(file_ext)
 
@@ -64,7 +80,6 @@ async def upload_document(
     await db.commit()
     await db.refresh(doc)
 
-    # Async vectorization
     background_tasks.add_task(_ingest_document_bg, str(doc.id), text_content, language)
 
     return KnowledgeDocumentOut.model_validate(doc)
@@ -79,8 +94,6 @@ async def _ingest_document_bg(doc_id: str, content: str, language: str | None) -
         await ingest_document(uuid.UUID(doc_id), content, language, db)
 
 
-# ── Search knowledge base ─────────────────────────────────────────────────────
-
 @router.get("/search", response_model=KnowledgeSearchResponse)
 async def search_knowledge(
     q: str = Query(..., min_length=1, description="Search query"),
@@ -90,8 +103,15 @@ async def search_knowledge(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> KnowledgeSearchResponse:
-    """Hybrid search (BM25 + vector) over the knowledge base."""
-    results = await hybrid_search(q, db, top_k=top_k * 2, category=category)
+    """Hybrid search over knowledge documents visible to the current user."""
+    scope_user_id = None if current_user.is_superuser else current_user.id
+    results = await hybrid_search(
+        q,
+        db,
+        top_k=top_k * 2,
+        category=category,
+        user_id=scope_user_id,
+    )
 
     if use_rerank and results:
         results = rerank(q, results, top_k=top_k)
@@ -113,16 +133,16 @@ async def search_knowledge(
     return KnowledgeSearchResponse(query=q, results=chunks_out, total=len(chunks_out))
 
 
-# ── List documents ────────────────────────────────────────────────────────────
-
 @router.get("/documents", response_model=list[KnowledgeDocumentOut])
 async def list_documents(
     category: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[KnowledgeDocumentOut]:
-    """List all knowledge base documents."""
+    """List knowledge base documents visible to the current user."""
     stmt = select(KnowledgeDocument)
+    if not current_user.is_superuser:
+        stmt = stmt.where(KnowledgeDocument.user_id == current_user.id)
     if category:
         stmt = stmt.where(KnowledgeDocument.category == category)
     stmt = stmt.order_by(KnowledgeDocument.created_at.desc())
@@ -131,8 +151,6 @@ async def list_documents(
     return [KnowledgeDocumentOut.model_validate(r) for r in rows]
 
 
-# ── Delete document ───────────────────────────────────────────────────────────
-
 @router.delete("/documents/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     doc_id: uuid.UUID,
@@ -140,9 +158,7 @@ async def delete_document(
     current_user: User = Depends(get_current_user),
 ) -> None:
     """Delete a knowledge document and all its chunks."""
-    result = await db.execute(
-        select(KnowledgeDocument).where(KnowledgeDocument.id == doc_id)
-    )
+    result = await db.execute(select(KnowledgeDocument).where(KnowledgeDocument.id == doc_id))
     doc = result.scalar_one_or_none()
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")

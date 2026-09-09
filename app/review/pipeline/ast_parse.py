@@ -1,7 +1,5 @@
 """Stage 3: AST parsing for structural context extraction."""
 
-import os
-
 from loguru import logger
 
 from app.review.pipeline.base import PipelineContext, PipelineStage

@@ -1,0 +1,29 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git curl build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml poetry.lock ./
+RUN pip install --no-cache-dir poetry \
+    && poetry config virtualenvs.create false \
+    && poetry install --only main --no-root --no-interaction \
+    && python -m venv /opt/analyzer-tools \
+    && /opt/analyzer-tools/bin/pip install --no-cache-dir semgrep bandit
+
+RUN ln -s /opt/analyzer-tools/bin/semgrep /usr/local/bin/semgrep \
+    && ln -s /opt/analyzer-tools/bin/bandit /usr/local/bin/bandit
+
+COPY alembic.ini ./
+COPY app ./app
+COPY migrations ./migrations
+
+EXPOSE 8080
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

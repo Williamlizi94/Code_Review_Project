@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,9 +25,7 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
     # ── Database ─────────────────────────────────────────────────────
-    database_url: str = (
-        "postgresql+asyncpg://codeguardian:codeguardian@localhost:5432/codeguardian"
-    )
+    database_url: str = "postgresql+asyncpg://codeguardian:codeguardian@localhost:5432/codeguardian"
 
     # ── Redis ────────────────────────────────────────────────────────
     redis_url: str = "redis://localhost:6379/0"
@@ -36,11 +35,29 @@ class Settings(BaseSettings):
     celery_result_backend: str = "redis://localhost:6379/1"
 
     # ── LLM ──────────────────────────────────────────────────────────
+    llm_provider: Literal["openai", "groq", "ollama"] = "groq"
     openai_api_key: str = ""
-    openai_model: str = "gpt-5.4-mini"
+    openai_model: str = "gpt-5.5"
+    openai_base_url: str = ""
+    groq_api_key: str = ""
+    groq_model: str = "qwen/qwen3.6-27b"
+    groq_base_url: str = "https://api.groq.com/openai/v1"
     openai_embedding_model: str = "text-embedding-3-small"
-    ollama_base_url: str = ""
-    ollama_model: str = ""
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen3-coder:30b"
+    embedding_provider: Literal["openai", "local", "ollama", "disabled"] = "local"
+    local_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    ollama_embedding_model: str = "embeddinggemma"
+
+    @property
+    def llm_is_configured(self) -> bool:
+        if self.llm_provider == "openai":
+            return bool(self.openai_api_key)
+        if self.llm_provider == "groq":
+            return bool(self.groq_api_key)
+        if self.llm_provider == "ollama":
+            return bool(self.ollama_base_url and self.ollama_model)
+        return False
 
     # ── File Storage (S3 / MinIO) ─────────────────────────────────────
     s3_endpoint: str = "http://localhost:9000"
@@ -53,6 +70,19 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440  # 24 hours
+    google_oauth_client_id: str = ""
+    google_oauth_client_secret: str = ""
+    google_oauth_redirect_url: str = "https://reviewcodeai.com/api/v1/auth/google/callback"
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self) -> "Settings":
+        if self.app_env == "production" and (
+            self.jwt_secret == "change-me-in-production" or len(self.jwt_secret) < 32
+        ):
+            raise ValueError(
+                "JWT_SECRET must be changed to a random value of at least 32 characters"
+            )
+        return self
 
     # ── Analyzers ────────────────────────────────────────────────────
     analyzer_semgrep_enabled: bool = True

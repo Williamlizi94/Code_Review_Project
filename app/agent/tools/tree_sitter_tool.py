@@ -25,15 +25,15 @@ def _get_parser(language: str):
     """Return a Tree-sitter parser for the given language name."""
     try:
         import tree_sitter_languages
+
         return tree_sitter_languages.get_parser(language)
     except (ImportError, Exception):
         pass
     try:
         from tree_sitter import Language, Parser
-        lang_obj = Language(f"build/{language}.so", language)
-        parser = Parser()
-        parser.set_language(lang_obj)
-        return parser
+
+        lang_obj = Language(f"build/{language}.so")
+        return Parser(lang_obj)
     except Exception:
         return None
 
@@ -52,7 +52,7 @@ def _extract_functions(node, code_bytes: bytes) -> list[dict]:
         name = None
         for child in node.children:
             if child.type in ("identifier", "property_identifier"):
-                name = code_bytes[child.start_byte:child.end_byte].decode(errors="replace")
+                name = code_bytes[child.start_byte : child.end_byte].decode(errors="replace")
                 break
         results.append(
             {

@@ -5,16 +5,17 @@ Revises:
 Create Date: 2024-01-01 00:00:00.000000
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "001"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -64,9 +65,7 @@ def upgrade() -> None:
         sa.Column("issues_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("critical_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("high_count", sa.Integer(), nullable=False, server_default="0"),
-        sa.Column(
-            "quality_gate_status", sa.String(20), nullable=False, server_default="SKIPPED"
-        ),
+        sa.Column("quality_gate_status", sa.String(20), nullable=False, server_default="SKIPPED"),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column(
             "created_at",
@@ -195,12 +194,8 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["doc_id"], ["knowledge_documents.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    # Add pgvector column for embeddings (1536 dims for text-embedding-3-small)
-    op.execute("ALTER TABLE knowledge_chunks ADD COLUMN embedding vector(1536)")
-    op.execute(
-        "CREATE INDEX ix_knowledge_chunks_embedding ON knowledge_chunks "
-        "USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"
-    )
+    # Dimensionless vectors allow switching embedding providers without another migration.
+    op.execute("ALTER TABLE knowledge_chunks ADD COLUMN embedding vector")
 
     # ── audit_logs ────────────────────────────────────────────────────
     op.create_table(

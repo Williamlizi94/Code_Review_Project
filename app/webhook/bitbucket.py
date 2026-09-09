@@ -14,15 +14,19 @@ settings = get_settings()
 def verify_bitbucket_signature(payload: bytes, signature_header: str | None) -> None:
     """Validate Bitbucket's X-Hub-Signature header (HMAC-SHA256)."""
     if not settings.bitbucket_webhook_secret:
-        return
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Bitbucket webhook secret is not configured",
+        )
     if not signature_header:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing X-Hub-Signature header",
         )
-    expected = "sha256=" + hmac.new(
-        settings.bitbucket_webhook_secret.encode(), payload, hashlib.sha256
-    ).hexdigest()
+    expected = (
+        "sha256="
+        + hmac.new(settings.bitbucket_webhook_secret.encode(), payload, hashlib.sha256).hexdigest()
+    )
     if not hmac.compare_digest(expected, signature_header):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -39,6 +43,7 @@ async def handle_bitbucket_event(request: Request) -> dict:
     event_key = request.headers.get("X-Event-Key", "")
     try:
         import json
+
         payload = json.loads(payload_bytes)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON payload")

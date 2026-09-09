@@ -1,658 +1,106 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CodeGuardian AI — Design Gallery</title>
+<title>005 - Aurora Spatial | CodeGuardian</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-    background:#060b14;
-    color:#f1f5f9;
-    min-height:100vh;
-  }
-
-  /* Hero */
-  .hero{
-    text-align:center;
-    padding:72px 24px 52px;
-    background:radial-gradient(ellipse at 50% 0%,rgba(99,102,241,0.18) 0%,transparent 70%);
-    border-bottom:1px solid rgba(255,255,255,0.07);
-  }
-  .hero-badge{
-    display:inline-block;
-    background:rgba(99,102,241,0.15);
-    color:#818cf8;
-    border:1px solid rgba(99,102,241,0.3);
-    border-radius:100px;
-    padding:4px 14px;
-    font-size:12px;
-    font-weight:600;
-    letter-spacing:.5px;
-    margin-bottom:20px;
-  }
-  .hero h1{
-    font-size:clamp(28px,5vw,52px);
-    font-weight:800;
-    letter-spacing:-1px;
-    line-height:1.1;
-    margin-bottom:14px;
-  }
-  .hero h1 .grad{
-    background:linear-gradient(135deg,#818cf8,#c084fc,#f472b6);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    background-clip:text;
-  }
-  .hero p{
-    color:#94a3b8;
-    font-size:16px;
-    max-width:560px;
-    margin:0 auto 32px;
-    line-height:1.6;
-  }
-  .hero-stats{
-    display:flex;
-    justify-content:center;
-    gap:40px;
-    flex-wrap:wrap;
-  }
-  .hero-stat .n{font-size:28px;font-weight:800;color:#f1f5f9;}
-  .hero-stat .l{font-size:12px;color:#64748b;margin-top:2px;}
-
-  /* Grid */
-  .gallery{
-    max-width:1300px;
-    margin:0 auto;
-    padding:52px 24px 80px;
-  }
-  .section-title{
-    font-size:13px;
-    font-weight:600;
-    letter-spacing:1px;
-    color:#64748b;
-    text-transform:uppercase;
-    margin-bottom:28px;
-  }
-  .grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-    gap:20px;
-  }
-
-  /* Card */
-  .card{
-    background:#111827;
-    border:1px solid rgba(255,255,255,0.07);
-    border-radius:14px;
-    overflow:hidden;
-    text-decoration:none;
-    display:flex;
-    flex-direction:column;
-    transition:transform .2s,box-shadow .2s,border-color .2s;
-  }
-  .card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 16px 48px rgba(0,0,0,0.4);
-  }
-
-  /* Preview swatch */
-  .preview{
-    height:130px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-  }
-  .preview-ui{
-    width:calc(100% - 28px);
-    background:rgba(0,0,0,0.3);
-    border-radius:6px;
-    overflow:hidden;
-    border:1px solid rgba(255,255,255,0.1);
-    display:flex;
-    height:90px;
-  }
-  .preview-sidebar{
-    width:36px;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    padding:6px 4px;
-    flex-shrink:0;
-  }
-  .preview-dot{width:100%;height:5px;border-radius:2px;opacity:.7;}
-  .preview-main{flex:1;padding:6px;display:flex;flex-direction:column;gap:4px;}
-  .preview-bar{height:6px;border-radius:2px;opacity:.6;}
-  .preview-bar.w-full{width:100%;}
-  .preview-bar.w-2-3{width:66%;}
-  .preview-bar.w-1-2{width:50%;}
-  .preview-cards{display:flex;gap:4px;flex:1;}
-  .preview-card-mini{flex:1;border-radius:3px;opacity:.5;}
-
-  /* Card body */
-  .card-body{
-    padding:18px 18px 16px;
-    flex:1;
-    display:flex;
-    flex-direction:column;
-  }
-  .card-header{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    margin-bottom:8px;
-    gap:8px;
-  }
-  .version-badge{
-    font-size:10px;
-    font-weight:700;
-    padding:2px 8px;
-    border-radius:100px;
-    letter-spacing:.5px;
-    white-space:nowrap;
-    flex-shrink:0;
-    margin-top:2px;
-  }
-  .card-name{
-    font-size:15px;
-    font-weight:700;
-    color:#f1f5f9;
-    line-height:1.3;
-  }
-  .card-desc{
-    font-size:12px;
-    color:#64748b;
-    line-height:1.5;
-    flex:1;
-    margin-bottom:14px;
-  }
-  .card-tags{
-    display:flex;
-    flex-wrap:wrap;
-    gap:5px;
-    margin-bottom:14px;
-  }
-  .tag{
-    font-size:10px;
-    font-weight:500;
-    padding:2px 8px;
-    border-radius:100px;
-    background:rgba(255,255,255,0.06);
-    color:#94a3b8;
-    border:1px solid rgba(255,255,255,0.08);
-  }
-  .card-link{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-size:12px;
-    font-weight:600;
-    color:#818cf8;
-    padding-top:10px;
-    border-top:1px solid rgba(255,255,255,0.06);
-  }
-  .card-link svg{transition:transform .15s;}
-  .card:hover .card-link svg{transform:translateX(3px);}
-
-  /* Per-version theming */
-  .v1 .preview{background:#0a0e1a;}
-  .v1 .preview-sidebar{background:#111827;}
-  .v1 .preview-dot,.v1 .preview-bar{background:#6366f1;}
-  .v1 .preview-card-mini{background:#1e2433;}
-  .v1:hover{border-color:#6366f1;}
-  .v1 .version-badge{background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.3);}
-  .v1 .card-link{color:#818cf8;}
-
-  .v2 .preview{background:#f0f4f8;}
-  .v2 .preview-sidebar{background:#1e293b;}
-  .v2 .preview-dot,.v2 .preview-bar{background:#3b82f6;}
-  .v2 .preview-card-mini{background:#e2e8f0;}
-  .v2:hover{border-color:#3b82f6;}
-  .v2 .version-badge{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3);}
-  .v2 .card-link{color:#60a5fa;}
-
-  .v3 .preview{background:linear-gradient(135deg,#0b0b1e,#1e1040);}
-  .v3 .preview-sidebar{background:rgba(255,255,255,0.06);}
-  .v3 .preview-dot,.v3 .preview-bar{background:#a78bfa;}
-  .v3 .preview-card-mini{background:rgba(255,255,255,0.08);}
-  .v3:hover{border-color:#a78bfa;}
-  .v3 .version-badge{background:rgba(167,139,250,.15);color:#c4b5fd;border:1px solid rgba(167,139,250,.3);}
-  .v3 .card-link{color:#c4b5fd;}
-
-  .v4 .preview{background:#000;}
-  .v4 .preview-sidebar{background:#050505;border-right:1px solid #00ff8833;}
-  .v4 .preview-dot,.v4 .preview-bar{background:#00ff88;}
-  .v4 .preview-card-mini{background:#0a0a0a;}
-  .v4:hover{border-color:#00ff88;}
-  .v4 .version-badge{background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.3);}
-  .v4 .card-link{color:#00ff88;}
-
-  .v5 .preview{background:linear-gradient(180deg,#020d1a,#041220);}
-  .v5 .preview-sidebar{background:rgba(6,24,40,0.95);}
-  .v5 .preview-dot,.v5 .preview-bar{background:#06b6d4;}
-  .v5 .preview-card-mini{background:#061828;}
-  .v5:hover{border-color:#06b6d4;}
-  .v5 .version-badge{background:rgba(6,182,212,.15);color:#22d3ee;border:1px solid rgba(6,182,212,.3);}
-  .v5 .card-link{color:#22d3ee;}
-
-  .v6 .preview{background:radial-gradient(ellipse at top,#1e1000,#130a00);}
-  .v6 .preview-sidebar{background:#1a0f00;}
-  .v6 .preview-dot,.v6 .preview-bar{background:#f59e0b;}
-  .v6 .preview-card-mini{background:#1e1200;}
-  .v6:hover{border-color:#f59e0b;}
-  .v6 .version-badge{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3);}
-  .v6 .card-link{color:#fcd34d;}
-
-  .v7 .preview{background:#fff;}
-  .v7 .preview-sidebar{background:#facc15;border-right:3px solid #000;}
-  .v7 .preview-dot,.v7 .preview-bar{background:#000;}
-  .v7 .preview-card-mini{background:#f5f5f5;border:1px solid #000;opacity:1;}
-  .v7:hover{border-color:#facc15;}
-  .v7 .version-badge{background:#facc15;color:#000;border:2px solid #000;border-radius:0;}
-  .v7 .card-link{color:#b8960a;}
-  .v7 .card-name{color:#111;}
-  .v7 .card-desc{color:#444;}
-
-  .v8 .preview{background:#eef2f7;}
-  .v8 .preview-sidebar{background:#1e3a5f;}
-  .v8 .preview-dot,.v8 .preview-bar{background:#1d4ed8;}
-  .v8 .preview-card-mini{background:#fff;}
-  .v8:hover{border-color:#1d4ed8;}
-  .v8 .version-badge{background:rgba(29,78,216,.15);color:#60a5fa;border:1px solid rgba(29,78,216,.3);}
-  .v8 .card-link{color:#60a5fa;}
-
-  .v9 .preview{background:radial-gradient(ellipse at top left,#041a0b,#020f07);}
-  .v9 .preview-sidebar{background:#031308;}
-  .v9 .preview-dot,.v9 .preview-bar{background:#10b981;}
-  .v9 .preview-card-mini{background:#041a0b;}
-  .v9:hover{border-color:#10b981;}
-  .v9 .version-badge{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3);}
-  .v9 .card-link{color:#34d399;}
-
-  .v10 .preview{background:radial-gradient(ellipse at bottom right,#1e0509,#130306);}
-  .v10 .preview-sidebar{background:#110205;}
-  .v10 .preview-dot,.v10 .preview-bar{background:#f43f5e;}
-  .v10 .preview-card-mini{background:#1e0509;}
-  .v10:hover{border-color:#f43f5e;}
-  .v10 .version-badge{background:rgba(244,63,94,.15);color:#fb7185;border:1px solid rgba(244,63,94,.3);}
-  .v10 .card-link{color:#fb7185;}
-
-  /* Footer */
-  .footer{
-    text-align:center;
-    padding:32px 24px;
-    border-top:1px solid rgba(255,255,255,0.07);
-    color:#334155;
-    font-size:12px;
-  }
+*{box-sizing:border-box}
+body{margin:0;background:#070613;color:#eeedff;font-family:Arial,sans-serif;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.bg{position:fixed;inset:0;background:radial-gradient(ellipse at 33% 28%,#4a2b8b,transparent 35%),radial-gradient(ellipse at 72% 70%,#087b7866,transparent 34%)}
+.bg:after{content:"";position:absolute;inset:0;background-image:radial-gradient(#fff5 1px,transparent 1px);background-size:45px 45px;mask-image:linear-gradient(#000,transparent)}
+.shell{position:relative;z-index:1;max-width:1450px;margin:auto;padding:24px 4vw 50px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800}
+.logo{width:27px;height:27px;border-radius:50%;background:conic-gradient(#55f1d8,#a66cff,#55f1d8);box-shadow:0 0 28px #8e76ff;flex:0 0 auto}
+.head nav{display:flex;gap:28px;color:#8c88a6;font-size:11px}
+.head nav a:first-child,.head nav a:hover{color:#fff}
+.head button,.cta{border:1px solid #ffffff2c;background:#ffffff0b;color:#eee;padding:10px 15px;border-radius:99px;cursor:pointer}
+.hero{min-height:380px;padding:8vh 0 3vh;display:grid;grid-template-columns:1fr .55fr;align-items:center;gap:20px}
+.hero h1{font-size:clamp(3.5rem,6.5vw,7.5rem);line-height:.85;margin:0}
+.hero h1 span{background:linear-gradient(90deg,#62eed7,#bd7dff);background-clip:text;color:transparent}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.cta.primary{background:linear-gradient(90deg,#55f1d8,#a66cff);color:#120d28;border:0;font-weight:800}
+.orb{width:245px;aspect-ratio:1;border-radius:50%;justify-self:center;position:relative;background:radial-gradient(circle at 35% 28%,#fff,#a46cff 9%,#211c4b 30%,#080716 68%);box-shadow:0 0 65px #824cff66,inset -25px -30px 50px #000;animation:float 5s ease-in-out infinite}
+.orb:before,.orb:after{content:"";position:absolute;inset:-22%;border:1px solid #7ef2dd66;border-radius:50%;transform:rotateX(68deg) rotateZ(-14deg)}
+.orb:after{inset:-40%;border-color:#aa6fff55;transform:rotateY(65deg) rotateZ(20deg)}
+.panels{display:grid;grid-template-columns:1.1fr .8fr .8fr;gap:12px}
+.card{min-height:210px;border:1px solid #ffffff20;background:#ffffff09;backdrop-filter:blur(24px);border-radius:20px;padding:20px;transition:.2s ease}
+.card:hover{transform:translateY(-3px);border-color:#7ef2dd88;background:#ffffff12}
+.card header{display:flex;justify-content:space-between;color:#8e89a8;font-size:9px;letter-spacing:.12em}
+.wave{display:flex;align-items:end;gap:5px;height:130px;padding-top:20px}
+.wave i{flex:1;height:var(--h);background:linear-gradient(#66f5d4,#6252ad33);border-radius:6px}
+.number{display:block;font-size:75px;margin-top:32px}
+.card p{font-size:10px;color:#8d89a6;line-height:1.6}
+.list{margin-top:23px;display:grid;gap:11px}
+.list div{display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #ffffff18;font-size:10px}
+.feature-links{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px}
+.feature-links a{border:1px solid #ffffff18;background:#ffffff08;border-radius:12px;padding:12px;font-size:11px;color:#bbb8d6;transition:.2s ease}
+.feature-links a:hover{border-color:#7ef2dd88;color:#fff;background:#ffffff12}
+.toast{position:fixed;z-index:5;right:25px;bottom:25px;background:#e9e5ff;color:#231842;padding:12px 17px;border-radius:99px;opacity:0;transform:translateY(15px);transition:.25s}
+.toast.on{opacity:1;transform:none}
+@keyframes float{50%{transform:translateY(-12px) rotate(5deg)}}
+@media(max-width:900px){.feature-links{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.head nav{display:none}.hero{grid-template-columns:1fr;min-height:480px}.hero h1{font-size:3.8rem}.orb{width:150px;margin-top:60px}.panels{grid-template-columns:1fr}.feature-links{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<div class="bg"></div>
+<div class="shell">
+  <header class="head">
+    <a class="brand" href="index.html"><i class="logo"></i>CodeGuardian</a>
+    <nav>
+      <a href="02-dashboard.html">Pulse</a>
+      <a href="04-review-list.html">Reviews</a>
+      <a href="03-submit-review.html">Repositories</a>
+      <a href="08-knowledge-base.html">Knowledge</a>
+    </nav>
+    <button id="invite">Invite team +</button>
+  </header>
 
-<div class="hero">
-  <div class="hero-badge">&#128737; CodeGuardian AI &middot; Design Gallery</div>
-  <h1>10 Design<br><span class="grad">Versions</span></h1>
-  <p>The same CodeGuardian AI frontend in 10 different visual styles. Each version contains all 11 demo pages, fully interlinked.</p>
-  <div class="hero-stats">
-    <div class="hero-stat"><div class="n">10</div><div class="l">Design Versions</div></div>
-    <div class="hero-stat"><div class="n">11</div><div class="l">Pages / Version</div></div>
-    <div class="hero-stat"><div class="n">110</div><div class="l">Total HTML Files</div></div>
-  </div>
+  <section class="hero">
+    <div>
+      <h1>See what your<br>code is <span>becoming.</span></h1>
+      <div class="hero-actions">
+        <a class="cta primary" href="02-dashboard.html">Open dashboard</a>
+        <a class="cta" href="03-submit-review.html">Submit review</a>
+      </div>
+    </div>
+    <div class="orb"></div>
+  </section>
+
+  <section class="panels">
+    <a class="card" href="02-dashboard.html">
+      <header><span>REVIEW VELOCITY</span><span>7 DAYS UP</span></header>
+      <div class="wave"><i style="--h:35%"></i><i style="--h:48%"></i><i style="--h:42%"></i><i style="--h:68%"></i><i style="--h:54%"></i><i style="--h:88%"></i><i style="--h:72%"></i><i style="--h:94%"></i></div>
+    </a>
+    <a class="card" href="10-quality-gate.html">
+      <header><span>CODE CONFIDENCE</span><span>+4.2%</span></header>
+      <strong class="number">94<small>%</small></strong>
+      <p>Confidence is rising across every active repository.</p>
+    </a>
+    <a class="card" href="06-issue-viewer.html">
+      <header><span>LIVE SIGNALS</span><span>12 TOTAL</span></header>
+      <div class="list"><div><span>Security</span><b>02</b></div><div><span>Reliability</span><b>04</b></div><div><span>Quality</span><b>06</b></div></div>
+    </a>
+  </section>
+
+  <section class="feature-links" aria-label="Feature pages">
+    <a href="01-login.html">Login & Register</a>
+    <a href="04-review-list.html">Review List</a>
+    <a href="05-review-detail.html">Review Detail</a>
+    <a href="07-report-viewer.html">Report Viewer</a>
+    <a href="09-webhook-setup.html">Webhook Setup</a>
+  </section>
 </div>
-
-<div class="gallery">
-  <div class="section-title">Choose a version to explore</div>
-  <div class="grid">
-
-    <a class="card v1" href="v1-dark-indigo/index.html">
-      <div class="preview">
-        <div class="preview-ui">
-          <div class="preview-sidebar">
-            <div class="preview-dot"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-          </div>
-          <div class="preview-main">
-            <div class="preview-bar w-1-2"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-            </div>
-            <div class="preview-bar w-full"></div>
-            <div class="preview-bar w-2-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Dark Indigo</div>
-          <div class="version-badge">V1</div>
-        </div>
-        <div class="card-desc">Dark indigo theme with professional dev-tool aesthetics. #6366f1 primary, refined dark cards.</div>
-        <div class="card-tags">
-          <span class="tag">Dark</span><span class="tag">Indigo</span><span class="tag">Professional</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-    <a class="card v2" href="v2-light-clean/index.html">
-      <div class="preview">
-        <div class="preview-ui" style="border-color:rgba(0,0,0,0.1);">
-          <div class="preview-sidebar">
-            <div class="preview-dot"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-          </div>
-          <div class="preview-main" style="background:#f0f4f8;">
-            <div class="preview-bar w-1-2"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini" style="background:#fff;border:1px solid #e2e8f0;opacity:1;"></div>
-              <div class="preview-card-mini" style="background:#fff;border:1px solid #e2e8f0;opacity:1;"></div>
-              <div class="preview-card-mini" style="background:#fff;border:1px solid #e2e8f0;opacity:1;"></div>
-            </div>
-            <div class="preview-bar w-full"></div>
-            <div class="preview-bar w-2-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Light Clean</div>
-          <div class="version-badge">V2</div>
-        </div>
-        <div class="card-desc">Minimal light theme with white cards and light grey background. Fresh and bright, ideal for daytime.</div>
-        <div class="card-tags">
-          <span class="tag">Light</span><span class="tag">Minimal</span><span class="tag">Blue</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-    <a class="card v3" href="v3-glass/index.html">
-      <div class="preview">
-        <div class="preview-ui">
-          <div class="preview-sidebar" style="background:rgba(255,255,255,0.06);">
-            <div class="preview-dot"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-          </div>
-          <div class="preview-main">
-            <div class="preview-bar w-1-2"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini" style="background:rgba(255,255,255,0.08);"></div>
-              <div class="preview-card-mini" style="background:rgba(255,255,255,0.08);"></div>
-              <div class="preview-card-mini" style="background:rgba(255,255,255,0.08);"></div>
-            </div>
-            <div class="preview-bar w-full"></div>
-            <div class="preview-bar w-2-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Glassmorphism</div>
-          <div class="version-badge">V3</div>
-        </div>
-        <div class="card-desc">Glassmorphism style with backdrop-filter blur, purple primary. Translucent cards, ultra-modern.</div>
-        <div class="card-tags">
-          <span class="tag">Glass</span><span class="tag">Blur</span><span class="tag">Purple</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-    <a class="card v4" href="v4-cyberpunk/index.html">
-      <div class="preview">
-        <div class="preview-ui" style="border-color:rgba(0,255,136,0.3);">
-          <div class="preview-sidebar" style="background:#050505;border-right:1px solid rgba(0,255,136,0.2);">
-            <div class="preview-dot"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-          </div>
-          <div class="preview-main" style="background:#000;">
-            <div class="preview-bar w-1-2"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini" style="background:#0a0a0a;border:1px solid rgba(0,255,136,0.2);opacity:1;"></div>
-              <div class="preview-card-mini" style="background:#0a0a0a;border:1px solid rgba(0,255,136,0.2);opacity:1;"></div>
-              <div class="preview-card-mini" style="background:#0a0a0a;border:1px solid rgba(0,255,136,0.2);opacity:1;"></div>
-            </div>
-            <div class="preview-bar w-full"></div>
-            <div class="preview-bar w-2-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Cyberpunk</div>
-          <div class="version-badge">V4</div>
-        </div>
-        <div class="card-desc">Cyberpunk style, pure black background with neon green #00ff88, monospace font, grid scanlines.</div>
-        <div class="card-tags">
-          <span class="tag">Dark</span><span class="tag">Neon</span><span class="tag">Mono</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-    <a class="card v5" href="v5-ocean/index.html">
-      <div class="preview">
-        <div class="preview-ui">
-          <div class="preview-sidebar">
-            <div class="preview-dot"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-          </div>
-          <div class="preview-main">
-            <div class="preview-bar w-1-2"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-            </div>
-            <div class="preview-bar w-full"></div>
-            <div class="preview-bar w-2-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Ocean Deep</div>
-          <div class="version-badge">V5</div>
-        </div>
-        <div class="card-desc">Deep ocean blue theme, very dark navy background, cyan #06b6d4 primary. Immersive and deep.</div>
-        <div class="card-tags">
-          <span class="tag">Dark</span><span class="tag">Cyan</span><span class="tag">Ocean</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-    <a class="card v6" href="v6-warm-amber/index.html">
-      <div class="preview">
-        <div class="preview-ui">
-          <div class="preview-sidebar">
-            <div class="preview-dot"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-          </div>
-          <div class="preview-main">
-            <div class="preview-bar w-1-2"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-            </div>
-            <div class="preview-bar w-full"></div>
-            <div class="preview-bar w-2-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Warm Amber</div>
-          <div class="version-badge">V6</div>
-        </div>
-        <div class="card-desc">Warm amber theme, very dark brown background, golden #f59e0b primary. Cozy for extended reading.</div>
-        <div class="card-tags">
-          <span class="tag">Dark</span><span class="tag">Amber</span><span class="tag">Warm</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-    <a class="card v7" href="v7-neo-brutal/index.html">
-      <div class="preview">
-        <div class="preview-ui" style="border:3px solid #000;border-radius:2px;">
-          <div class="preview-sidebar" style="background:#facc15;border-right:3px solid #000;">
-            <div class="preview-dot" style="background:#000;"></div>
-            <div class="preview-dot" style="background:#000;opacity:.4;"></div>
-            <div class="preview-dot" style="background:#000;opacity:.4;"></div>
-            <div class="preview-dot" style="background:#000;opacity:.4;"></div>
-          </div>
-          <div class="preview-main" style="background:#fff;">
-            <div class="preview-bar w-1-2" style="background:#000;"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini" style="background:#fff;border:2px solid #000;opacity:1;border-radius:0;"></div>
-              <div class="preview-card-mini" style="background:#fff;border:2px solid #000;opacity:1;border-radius:0;"></div>
-              <div class="preview-card-mini" style="background:#fff;border:2px solid #000;opacity:1;border-radius:0;"></div>
-            </div>
-            <div class="preview-bar w-full" style="background:#000;"></div>
-            <div class="preview-bar w-2-3" style="background:#000;"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Neo Brutal</div>
-          <div class="version-badge">V7</div>
-        </div>
-        <div class="card-desc">Neo-brutalism: white background, yellow sidebar, thick black borders + offset shadows, 0px radius.</div>
-        <div class="card-tags">
-          <span class="tag">Light</span><span class="tag">Bold</span><span class="tag">Brutalism</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-    <a class="card v8" href="v8-corporate/index.html">
-      <div class="preview">
-        <div class="preview-ui" style="border-color:rgba(0,0,0,0.1);">
-          <div class="preview-sidebar">
-            <div class="preview-dot"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-          </div>
-          <div class="preview-main" style="background:#eef2f7;">
-            <div class="preview-bar w-1-2"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini" style="background:#fff;border:1px solid #e2e8f0;opacity:1;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
-              <div class="preview-card-mini" style="background:#fff;border:1px solid #e2e8f0;opacity:1;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
-              <div class="preview-card-mini" style="background:#fff;border:1px solid #e2e8f0;opacity:1;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>
-            </div>
-            <div class="preview-bar w-full"></div>
-            <div class="preview-bar w-2-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Corporate</div>
-          <div class="version-badge">V8</div>
-        </div>
-        <div class="card-desc">Enterprise professional style, deep navy sidebar, light grey background, white cards with fine shadows.</div>
-        <div class="card-tags">
-          <span class="tag">Light</span><span class="tag">Navy</span><span class="tag">Enterprise</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-    <a class="card v9" href="v9-emerald/index.html">
-      <div class="preview">
-        <div class="preview-ui">
-          <div class="preview-sidebar">
-            <div class="preview-dot"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-          </div>
-          <div class="preview-main">
-            <div class="preview-bar w-1-2"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-            </div>
-            <div class="preview-bar w-full"></div>
-            <div class="preview-bar w-2-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Emerald Forest</div>
-          <div class="version-badge">V9</div>
-        </div>
-        <div class="card-desc">Emerald green theme, very dark green background, #10b981 primary. Natural, fresh, vibrant.</div>
-        <div class="card-tags">
-          <span class="tag">Dark</span><span class="tag">Green</span><span class="tag">Nature</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-    <a class="card v10" href="v10-rose/index.html">
-      <div class="preview">
-        <div class="preview-ui">
-          <div class="preview-sidebar">
-            <div class="preview-dot"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-            <div class="preview-dot" style="opacity:.25"></div>
-          </div>
-          <div class="preview-main">
-            <div class="preview-bar w-1-2"></div>
-            <div class="preview-cards">
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-              <div class="preview-card-mini"></div>
-            </div>
-            <div class="preview-bar w-full"></div>
-            <div class="preview-bar w-2-3"></div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <div class="card-name">Rose Dark</div>
-          <div class="version-badge">V10</div>
-        </div>
-        <div class="card-desc">Rose dark theme, very dark rose background, vibrant #f43f5e primary. Bold, expressive, striking.</div>
-        <div class="card-tags">
-          <span class="tag">Dark</span><span class="tag">Rose</span><span class="tag">Vibrant</span>
-        </div>
-        <div class="card-link">Open this version <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
-      </div>
-    </a>
-
-  </div>
-</div>
-
-<div class="footer">
-  CodeGuardian AI &mdash; Design Gallery &middot; 10 versions &times; 11 pages = 110 HTML files
-</div>
-
+<div class="toast">邀请链接已复制</div>
+<script>
+const invite=document.getElementById('invite');
+const toast=document.querySelector('.toast');
+invite.addEventListener('click',()=>{toast.classList.add('on');setTimeout(()=>toast.classList.remove('on'),1800)});
+</script>
+<script src="api.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

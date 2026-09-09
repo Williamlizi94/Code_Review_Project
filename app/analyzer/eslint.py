@@ -3,13 +3,13 @@ import json
 
 from loguru import logger
 
-from app.analyzer.base import AnalyzerIssue, BaseAnalyzer
+from app.analyzer.base import AnalyzerIssue, BaseAnalyzer, CategoryType, SeverityLevel
 from app.config import get_settings
 
 settings = get_settings()
 
 # ESLint severity: 1 = warning, 2 = error
-_SEVERITY_MAP = {1: "MEDIUM", 2: "HIGH"}
+_SEVERITY_MAP: dict[int, SeverityLevel] = {1: "MEDIUM", 2: "HIGH"}
 
 
 class ESLintAnalyzer(BaseAnalyzer):
@@ -26,9 +26,11 @@ class ESLintAnalyzer(BaseAnalyzer):
 
         cmd = [
             "eslint",
-            "--format", "json",
+            "--format",
+            "json",
             "--no-eslintrc",
-            "--env", "es2021,browser,node",
+            "--env",
+            "es2021,browser,node",
             path,
         ]
 
@@ -40,7 +42,7 @@ class ESLintAnalyzer(BaseAnalyzer):
                 stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("ESLint timed out")
             return []
         except FileNotFoundError:
@@ -57,7 +59,7 @@ class ESLintAnalyzer(BaseAnalyzer):
             file_path = file_result.get("filePath", "")
             for msg in file_result.get("messages", []):
                 sev_int = msg.get("severity", 1)
-                severity = _SEVERITY_MAP.get(sev_int, "MEDIUM")  # type: ignore[assignment]
+                severity = _SEVERITY_MAP.get(sev_int, "MEDIUM")
                 rule_id = msg.get("ruleId", "")
                 issues.append(
                     AnalyzerIssue(
@@ -76,7 +78,7 @@ class ESLintAnalyzer(BaseAnalyzer):
         return issues
 
 
-def _map_eslint_category(rule_id: str) -> str:
+def _map_eslint_category(rule_id: str) -> CategoryType:
     rid = rule_id.lower()
     if any(k in rid for k in ("security", "no-eval", "no-new-func", "prototype")):
         return "security"

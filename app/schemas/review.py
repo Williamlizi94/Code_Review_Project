@@ -2,7 +2,9 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, field_validator
+
+from app.security.url_validation import validate_public_http_url
 
 
 class ReviewRequest(BaseModel):
@@ -28,20 +30,39 @@ class ReviewRequest(BaseModel):
     snippet_content: str | None = Field(
         None, description="Raw code snippet (required for SNIPPET type)"
     )
-    snippet_language: str | None = Field(
-        None, description="Language hint for snippet review"
-    )
+    snippet_language: str | None = Field(None, description="Language hint for snippet review")
 
-    model_config = {"json_schema_extra": {
-        "example": {
-            "type": "GIT_REPO",
-            "target": "https://github.com/org/repo.git",
-            "branch": "feature/login",
-            "languages": ["python", "typescript"],
-            "mode": "INCREMENTAL",
-            "ruleset_id": "owasp-top-ten",
+    @field_validator("notify_webhook")
+    @classmethod
+    def validate_notify_webhook(cls, value: str | None) -> str | None:
+        if value is not None:
+            validate_public_http_url(value)
+        return value
+
+    @field_validator("languages")
+    @classmethod
+    def normalize_languages(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return None
+        return sorted({language.strip().lower() for language in value if language.strip()})
+
+    @field_validator("snippet_language")
+    @classmethod
+    def normalize_snippet_language(cls, value: str | None) -> str | None:
+        return value.strip().lower() if value and value.strip() else None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "type": "GIT_REPO",
+                "target": "https://github.com/org/repo.git",
+                "branch": "feature/login",
+                "languages": ["python", "typescript"],
+                "mode": "INCREMENTAL",
+                "ruleset_id": "owasp-top-ten",
+            }
         }
-    }}
+    }
 
 
 class IssueOut(BaseModel):

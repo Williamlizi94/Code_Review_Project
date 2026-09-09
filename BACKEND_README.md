@@ -24,7 +24,7 @@ The CodeGuardian AI backend is a Python-based asynchronous service that orchestr
 | Layer | Description |
 |---|---|
 | **Rule Engine** | Semgrep + language-specific linters run statically on source code |
-| **LLM Reasoning** | LangGraph ReAct agent powered by `gpt-5.4-mini` performs semantic, contextual analysis |
+| **LLM Reasoning** | LangGraph ReAct agent powered by `gpt-5.5` performs semantic, contextual analysis |
 | **RAG Augmentation** | Historical defects and coding standards retrieved from a vector knowledge base to enrich LLM context |
 
 The system exposes a REST API for submitting reviews, retrieving results, managing the knowledge base, and receiving webhook events from GitHub, GitLab, and Bitbucket.
@@ -38,7 +38,7 @@ The system exposes a REST API for submitting reviews, retrieving results, managi
 | **Language** | Python 3.12 | Primary runtime |
 | **Web Framework** | FastAPI + Uvicorn | Async REST API server |
 | **AI Agent** | LangChain + LangGraph | ReAct agent orchestration |
-| **LLM** | OpenAI `gpt-5.4-mini` | Code reasoning and fix suggestions |
+| **LLM** | OpenAI `gpt-5.5` | Code reasoning and fix suggestions |
 | **Embeddings** | OpenAI `text-embedding-3-small` | 1536-dim vector representations |
 | **Static Analysis** | Semgrep | 30+ language rule-based scanner |
 | **Python Linter** | Bandit | Python security vulnerability detection |
@@ -86,7 +86,7 @@ The system exposes a REST API for submitting reviews, retrieving results, managi
 │   │            LangGraph AI Agent (ReAct Loop)             │    │
 │   │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │    │
 │   │   │  LLM Client │  │ Tool Nodes  │  │   Prompt    │   │    │
-│   │   │(gpt-5.4-mini│  │(Semgrep/AST)│  │   Builder   │   │    │
+│   │   │ (gpt-5.5)   │  │(Semgrep/AST)│  │   Builder   │   │    │
 │   │   └─────────────┘  └─────────────┘  └─────────────┘   │    │
 │   └───────────────────────────────────────────────────────┘    │
 │                                                                 │
@@ -106,7 +106,7 @@ The system exposes a REST API for submitting reviews, retrieving results, managi
                                │
 ┌──────────────────────────────▼──────────────────────────────────┐
 │                        AI Model Layer                            │
-│              OpenAI gpt-5.4-mini  ·  text-embedding-3-small      │
+│                 OpenAI gpt-5.5  ·  text-embedding-3-small        │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -265,7 +265,7 @@ codeguardian-ai/
 │   │   └── staticcheck.py          # Staticcheck (Go)
 │   │
 │   ├── agent/                      # LangGraph AI Agent
-│   │   ├── graph.py                # create_react_agent + gpt-5.4-mini binding
+│   │   ├── graph.py                # create_react_agent + gpt-5.5 binding
 │   │   ├── tools/
 │   │   │   ├── semgrep_tool.py     # @tool run_semgrep
 │   │   │   ├── tree_sitter_tool.py # @tool parse_ast
@@ -438,7 +438,7 @@ Key environment variables (see [.env.example](.env.example) for full list):
 ```env
 # LLM
 OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-5.4-mini
+OPENAI_MODEL=gpt-5.5
 
 # Database
 DATABASE_URL=postgresql+asyncpg://codeguardian:codeguardian@localhost:5432/codeguardian

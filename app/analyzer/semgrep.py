@@ -1,12 +1,10 @@
 import asyncio
 import json
 import os
-import tempfile
-from pathlib import Path
 
 from loguru import logger
 
-from app.analyzer.base import AnalyzerIssue, BaseAnalyzer, normalize_severity
+from app.analyzer.base import AnalyzerIssue, BaseAnalyzer, CategoryType, normalize_severity
 from app.config import get_settings
 
 settings = get_settings()
@@ -51,7 +49,7 @@ class SemgrepAnalyzer(BaseAnalyzer):
                 cwd=path if os.path.isdir(path) else None,
             )
             stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=300)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Semgrep timed out after 300 seconds")
             return []
         except FileNotFoundError:
@@ -77,7 +75,10 @@ class SemgrepAnalyzer(BaseAnalyzer):
             severity = normalize_severity(severity_raw)
             # Override with metadata if available
             if extra.get("metadata", {}).get("impact", "").upper() in (
-                "CRITICAL", "HIGH", "MEDIUM", "LOW"
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW",
             ):
                 severity = extra["metadata"]["impact"].upper()  # type: ignore[assignment]
 
@@ -105,10 +106,11 @@ class SemgrepAnalyzer(BaseAnalyzer):
         return issues
 
 
-def _map_semgrep_category(rule_id: str) -> str:
+def _map_semgrep_category(rule_id: str) -> CategoryType:
     """Heuristic category mapping from Semgrep rule ID."""
     rid = rule_id.lower()
-    if any(k in rid for k in ("inject", "xss", "ssrf", "secret", "auth", "crypto", "sqli", "owasp")):
+    security_terms = ("inject", "xss", "ssrf", "secret", "auth", "crypto", "sqli", "owasp")
+    if any(term in rid for term in security_terms):
         return "security"
     if any(k in rid for k in ("perf", "n+1", "memory", "async", "blocking")):
         return "performance"

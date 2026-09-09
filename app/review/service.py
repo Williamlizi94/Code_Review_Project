@@ -1,13 +1,15 @@
-"""Review orchestration service — assembles and runs the pipeline."""
+"""Review orchestration service â€” assembles and runs the pipeline."""
 
+import shutil
+import tempfile
 import uuid
+from pathlib import Path
 from typing import Any
 
 from loguru import logger
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.analyzer.base import SEVERITY_ORDER
 from app.config import get_settings
 from app.models.review import Review, ReviewIssue, ReviewReport
 from app.review.pipeline import (
@@ -41,6 +43,7 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
 
     ctx = PipelineContext(
         review_id=review_id,
+        user_id=review.user_id,
         review_type=review.type,
         target=review.target,
         branch=review.branch,
@@ -49,10 +52,10 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
         ruleset_id=review.ruleset_id,
         notify_webhook=review.notify_webhook,
         snippet_content=review.snippet_content,
-        snippet_language=None,  # could be stored as extra field
+        snippet_language=review.snippet_language,
     )
 
-    # ── Run stages sequentially ───────────────────────────────────────
+    # Run stages sequentially.
     stages = [
         GitCloneStage(),
         StaticAnalysisStage(),
@@ -64,23 +67,32 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
         NotifyStage(),
     ]
 
-    for stage in stages:
-        try:
-            ctx = await stage(ctx)
-            # Update workspace path after clone
-            if stage.name == "git_clone" and ctx.workspace_path:
-                await db.execute(
-                    update(Review)
-                    .where(Review.id == review_id)
-                    .values(workspace_path=ctx.workspace_path)
-                )
-                await db.commit()
-        except Exception as exc:
-            logger.error(f"Pipeline stage {stage.name!r} raised unexpected error: {exc}")
-            ctx.error = str(exc)
-            break
+    try:
+        for stage in stages:
+            try:
+                ctx = await stage(ctx)
+                # Update workspace path after clone
+                if stage.name == "git_clone" and ctx.workspace_path:
+                    await db.execute(
+                        update(Review)
+                        .where(Review.id == review_id)
+                        .values(workspace_path=ctx.workspace_path)
+                    )
+                    await db.commit()
+            except Exception as exc:
+                logger.error(f"Pipeline stage {stage.name!r} raised unexpected error: {exc}")
+                ctx.error = str(exc)
+                break
+    finally:
+        _cleanup_temporary_paths(ctx)
+        if ctx.workspace_path:
+            await db.execute(
+                update(Review).where(Review.id == review_id).values(workspace_path=None)
+            )
+            await db.commit()
+            ctx.workspace_path = None
 
-    # ── Persist results ───────────────────────────────────────────────
+    # Persist results.
     if ctx.error:
         await _update_status(review_id, "FAILED", db, error_message=ctx.error)
         return
@@ -108,9 +120,7 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
     if ctx.report_html:
         db.add(ReviewReport(review_id=review_id, format="html", content=ctx.report_html))
     if ctx.report_markdown:
-        db.add(
-            ReviewReport(review_id=review_id, format="markdown", content=ctx.report_markdown)
-        )
+        db.add(ReviewReport(review_id=review_id, format="markdown", content=ctx.report_markdown))
 
     # Compute stats
     critical = sum(1 for i in ctx.merged_issues if i.severity == "CRITICAL")
@@ -139,8 +149,7 @@ async def run_review_pipeline(review_id: uuid.UUID, db: AsyncSession) -> None:
     )
     await db.commit()
     logger.info(
-        f"Review {review_id} COMPLETED: {len(ctx.merged_issues)} issues, "
-        f"gate={gate_status}"
+        f"Review {review_id} COMPLETED: {len(ctx.merged_issues)} issues, gate={gate_status}"
     )
 
 
@@ -155,3 +164,24 @@ async def _update_status(
         values["error_message"] = error_message
     await db.execute(update(Review).where(Review.id == review_id).values(**values))
     await db.commit()
+
+
+def _cleanup_temporary_paths(ctx: PipelineContext) -> None:
+    """Remove only temporary files and directories created by this pipeline run."""
+    temp_root = Path(tempfile.gettempdir()).resolve()
+    for raw_path in reversed(ctx.temporary_paths):
+        path = Path(raw_path).resolve()
+        try:
+            path.relative_to(temp_root)
+        except ValueError:
+            logger.error(f"Refusing to clean non-temporary path: {path}")
+            continue
+
+        try:
+            if path.is_dir():
+                shutil.rmtree(path)
+            elif path.exists():
+                path.unlink()
+        except OSError as exc:
+            logger.warning(f"Could not clean temporary path {path}: {exc}")
+    ctx.temporary_paths.clear()

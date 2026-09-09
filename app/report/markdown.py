@@ -3,7 +3,7 @@
 from collections import Counter
 from datetime import datetime
 
-from app.analyzer.base import AnalyzerIssue, SEVERITY_ORDER
+from app.analyzer.base import AnalyzerIssue
 
 
 def generate_markdown_report(
@@ -88,7 +88,8 @@ def generate_markdown_report(
     lines += [
         "---",
         "",
-        "_🛡️ CodeGuardian AI — Every line of code, in every language, held to the highest standard._",
+        "_🛡️ CodeGuardian AI — Every line of code, in every language, "
+        "held to the highest standard._",
     ]
 
     return "\n".join(lines)

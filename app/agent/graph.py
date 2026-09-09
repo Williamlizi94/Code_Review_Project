@@ -8,6 +8,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from loguru import logger
+from pydantic import SecretStr
 
 from app.agent.tools.git_diff_tool import get_git_diff
 from app.agent.tools.linters_tool import run_linters
@@ -22,12 +23,38 @@ REVIEW_TOOLS = [run_semgrep, run_linters, parse_ast, get_git_diff]
 
 
 def _build_llm() -> ChatOpenAI:
-    return ChatOpenAI(
-        model=settings.openai_model,
-        api_key=settings.openai_api_key,
-        temperature=0,
-        max_tokens=4096,
-    )
+    common_kwargs: dict[str, Any] = {
+        "temperature": 0,
+        "max_tokens": 4096,
+    }
+
+    if settings.llm_provider == "groq":
+        return ChatOpenAI(
+            model=settings.groq_model,
+            api_key=SecretStr(settings.groq_api_key),
+            base_url=settings.groq_base_url,
+            # `reasoning_format` is Groq-specific. Send it through the
+            # OpenAI SDK's extension payload instead of its typed parameters.
+            extra_body={"reasoning_format": "hidden"},
+            **common_kwargs,
+        )
+
+    if settings.llm_provider == "ollama":
+        return ChatOpenAI(
+            model=settings.ollama_model,
+            api_key=SecretStr("ollama"),
+            base_url=f"{settings.ollama_base_url.rstrip('/')}/v1",
+            **common_kwargs,
+        )
+
+    kwargs: dict[str, Any] = {
+        "model": settings.openai_model,
+        "api_key": SecretStr(settings.openai_api_key),
+        **common_kwargs,
+    }
+    if settings.openai_base_url:
+        kwargs["base_url"] = settings.openai_base_url
+    return ChatOpenAI(**kwargs)
 
 
 def _extract_json_from_response(text: str) -> dict:

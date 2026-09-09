@@ -1,11 +1,10 @@
 """Stage 8: Send notifications — webhook callbacks and PR/MR comments."""
 
-import json
-
 import httpx
 from loguru import logger
 
 from app.review.pipeline.base import PipelineContext, PipelineStage
+from app.security.url_validation import validate_public_http_destination
 
 
 class NotifyStage(PipelineStage):
@@ -21,7 +20,6 @@ class NotifyStage(PipelineStage):
 
 async def _send_webhook(ctx: PipelineContext) -> None:
     """POST review summary to the configured CI/CD callback URL."""
-    from app.analyzer.base import SEVERITY_ORDER
 
     payload = {
         "review_id": str(ctx.review_id),
@@ -32,10 +30,15 @@ async def _send_webhook(ctx: PipelineContext) -> None:
         "error": ctx.error,
     }
 
+    notify_webhook = ctx.notify_webhook
+    if notify_webhook is None:
+        return
+
     try:
-        async with httpx.AsyncClient(timeout=15) as client:
+        callback_url = await validate_public_http_destination(notify_webhook)
+        async with httpx.AsyncClient(timeout=15, follow_redirects=False) as client:
             resp = await client.post(
-                ctx.notify_webhook,
+                callback_url,
                 json=payload,
                 headers={"Content-Type": "application/json"},
             )
